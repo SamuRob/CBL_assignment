@@ -11,6 +11,9 @@ public class GameFrame extends JFrame {
     private JButton instructionButton;
     private boolean gameStarted = false;
 
+     /**
+      * Intro from start screen to game itself.
+      */
     public GameFrame(){
         super("Hizmet delivery game");
         setSize(800, 600);
@@ -37,7 +40,7 @@ public class GameFrame extends JFrame {
             }
         });
 
-        
+
         setVisible(true); // Makes window visible to the player
     }
 

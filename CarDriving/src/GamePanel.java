@@ -99,9 +99,8 @@ public class GamePanel extends JPanel {
 
     // Handle vehicle movement based on key presses
     public void moveVehicle(int keyCode) {
-        if (gameState != GAME_SCREEN) {
-            return;;  // Ignore key events if the game hasn't started
-
+        if (gameState != GAME_SCREEN) {return;} // Ignore key events if the game hasn't started
+        
         int laneHeight = roadHeight / maxLane;
         if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
             currentLane--;
