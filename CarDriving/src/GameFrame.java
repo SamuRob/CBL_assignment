@@ -24,12 +24,11 @@ public class GameFrame extends JFrame {
         gamePanel = new GamePanel();
         add(gamePanel, BorderLayout.CENTER);
 
-        startButton = new JButton("Start Game:");
-
-        instructionButton = new JButton("Instructions");
-        
         gamePanel.setFocusable(true);
-        gamePanel.requestFocusInWindow();
+
+       // startButton = new JButton("Start Game:");
+
+       // instructionButton = new JButton("Instructions");
 
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
@@ -40,9 +39,19 @@ public class GameFrame extends JFrame {
             }
         });
 
+        gamePanel.setFocusable(true);
+        gamePanel.requestFocusInWindow();
 
         setVisible(true); // Makes window visible to the player
+        gamePanel.requestFocusInWindow();
+        //Ensure panel has focus for key events
+        //such as left/right and up/down movements
     }
+
+    public void setGameStarted(boolean started) {
+        this.gameStarted = started;
+    }
+    
 
     public static void main(String[] args){
         new GameFrame();
