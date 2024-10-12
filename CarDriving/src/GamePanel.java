@@ -14,6 +14,11 @@ public class GamePanel extends JPanel {
     private boolean GameRunning = false;
     private int windowHeight, windowWidth;
 
+    private Obstacles obstacles;
+    private int obstacleSpawnCount = 0; // control spawn rate
+    private int roadX;
+    private int roadY;
+
     private static final int START_SCREEN = 0;
     private static final int GAME_SCREEN = 1;
     private int gameState = START_SCREEN;
@@ -31,6 +36,9 @@ public class GamePanel extends JPanel {
         this.windowHeight = 600;
         this.truckX = windowWidth / 2 - 40; // Center initial position of vehicle
         this.truckY = (windowHeight / 2) + 50; // Vertical position of vehicle
+        
+        this.roadX = (windowWidth - roadWidth) / 2;
+        this.roadY = (windowHeight / 2) - (roadHeight / 2);
 
         startButton = new JButton("Start Game");
         startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
@@ -52,6 +60,9 @@ public class GamePanel extends JPanel {
                 repaint();
             }
         });
+
+        obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed);
+
     }
 
     private void drawRoadImage() {
@@ -103,6 +114,7 @@ public class GamePanel extends JPanel {
         } else if (gameState == GAME_SCREEN) {
             drawRoad(g);  // Draw the road
             drawVehicle(g);  // Draw the vehicle
+            obstacles.drawObstacles(g);
         }
     }
 
@@ -112,6 +124,19 @@ public class GamePanel extends JPanel {
         if (laneMoved >= roadHeight / maxLane) {
             laneMoved = 0;
         }
+
+        obstacleSpawnCount++;
+        if (obstacleSpawnCount >= 100){
+            obstacles.generateObstacle();
+            obstacleSpawnCount = 0;
+        }
+
+        obstacles.moveObstacles();
+
+        if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
+            // TODO Health minus
+        }
+
         repaint();
     }
 
@@ -128,7 +153,7 @@ public class GamePanel extends JPanel {
 
     // Draw the Road
     private void drawRoad(Graphics g) {
-        int roadX = (windowWidth - roadWidth) / 2;
+        //int roadX = (windowWidth - roadWidth) / 2;
         int roadY = (windowHeight / 2) - (roadHeight / 2);
     
         // Draw the pre-rendered road, moving from right to left
