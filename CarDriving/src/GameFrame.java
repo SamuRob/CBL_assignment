@@ -7,6 +7,7 @@ import javax.swing.*;
 public class GameFrame extends JFrame {
 
     private GamePanel gamePanel;
+    private ScorePanel scorePanel;
     private JButton startButton;
     private JButton instructionButton;
     private boolean gameStarted = false;
@@ -26,6 +27,8 @@ public class GameFrame extends JFrame {
 
         gamePanel.setFocusable(true);
 
+        scorePanel = new ScorePanel();
+        add(scorePanel,BorderLayout.NORTH);
        // startButton = new JButton("Start Game:");
 
        // instructionButton = new JButton("Instructions");
@@ -50,6 +53,13 @@ public class GameFrame extends JFrame {
 
     public void setGameStarted(boolean started) {
         this.gameStarted = started;
+        if (started) {
+            scorePanel.reset();
+        }
+    }
+    
+    public ScorePanel getScorePanel(){
+        return scorePanel;
     }
     
 
