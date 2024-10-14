@@ -132,13 +132,46 @@ public class GamePanel extends JPanel {
         }
 
         obstacles.moveObstacles();
-
+        // Check for collisions
         if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
-            // TODO Health minus
+            // Stop the game when a collision happens
+            GameRunning = false;
+            gameTimer.stop();
+
+            // Show a "Game Over" message to the user
+            int response = JOptionPane.showOptionDialog(this, 
+                "Game Over! Do you want to play again?", 
+                "Game Over", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.INFORMATION_MESSAGE, 
+                null, null, null);
+
+            // If the player chooses to restart the game
+            if (response == JOptionPane.YES_OPTION) {
+                restartGame();  // Custom method to reset and restart
+            } else {
+            // Close the window or return to the start screen
+            ((JFrame) SwingUtilities.getWindowAncestor(this)).dispose();  // Close game
         }
+    }
 
         repaint();
     }
+
+    private void restartGame() {
+        // Reset game variables
+        truckX = windowWidth / 2 - 40;
+        truckY = (windowHeight / 2) + 50;
+        currentLane = 1;
+        laneMoved = 0;
+        obstacles = new Obstacles(roadWidth, roadX,
+         roadY, roadHeight / maxLane, maxLane, scrollSpeed);
+    
+        GameRunning = true;
+        gameTimer.start();
+        requestFocusInWindow();  // Ensure the panel has focus
+    }
+    
 
     // Draw the Start screen
     private void drawStartScreen(Graphics g) {
@@ -185,12 +218,12 @@ public class GamePanel extends JPanel {
         //Left to right movement
         if (keyCode == KeyEvent.VK_LEFT && truckX > 0) {
             truckX = truckX - 10;
-        } else if (keyCode == KeyEvent.VK_RIGHT && truckX < windowWidth -80) {
+        } else if (keyCode == KeyEvent.VK_RIGHT && truckX < windowWidth - 80) {
             truckX = truckX + 10;
         }
         repaint();
 
-
+        System.out.println("Current lane " + currentLane);
     }
 
     // Draw the Vehicle (Truck)
@@ -200,4 +233,6 @@ public class GamePanel extends JPanel {
         int truckHeight = 40;
         g.fillRect(truckX, truckY, truckWidth, truckHeight);
     }
+
+    
 }
