@@ -46,7 +46,9 @@ public class ScorePanel extends JPanel {
     // Method to decrease score when penalty occurs
     public void missedDelivery() {
         int penalty = random.nextInt(20) + 10;  // Random penalty between 10 and 30
-        score -= penalty;
+        if (score > 0) {
+            score = Math.max(0, score - penalty);  // Prevent score from going negative
+        }
         updateLabels();
     }
 

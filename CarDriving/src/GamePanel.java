@@ -19,6 +19,10 @@ public class GamePanel extends JPanel {
     private int roadX;
     private int roadY;
 
+    private ParkingSpot parkingSpot;
+    private int parkingSpotSpawnCount = 0;
+    private boolean parkSuccess = false;
+
     private static final int START_SCREEN = 0;
     private static final int GAME_SCREEN = 1;
     private int gameState = START_SCREEN;
@@ -61,7 +65,10 @@ public class GamePanel extends JPanel {
             }
         });
 
-        obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed);
+        obstacles = new Obstacles(roadWidth, roadX,
+         roadY, roadHeight / maxLane, maxLane, scrollSpeed);
+
+        parkingSpot = new ParkingSpot(roadWidth, roadX, roadY, roadHeight / maxLane);
 
     }
 
@@ -108,18 +115,46 @@ public class GamePanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
+    
         if (gameState == START_SCREEN) {
             drawStartScreen(g);  // Draw the start screen
         } else if (gameState == GAME_SCREEN) {
             drawRoad(g);  // Draw the road
             drawVehicle(g);  // Draw the vehicle
-            obstacles.drawObstacles(g);
+            parkingSpot.drawParkingSpots(g);  // Draw parking lanes and spots
+            obstacles.drawObstacles(g);  // Draw obstacles
+            drawAnticipationArrow(g);  // Draw arrow
         }
+    }
+    
+
+    private void drawAnticipationArrow(Graphics g) {
+        g.setColor(Color.RED);
+        int arrowX = parkingSpot.isNextSpotLeft() ? roadX - 50 : roadX + roadWidth + 10;
+        int arrowY = roadY - 30;
+        g.fillPolygon(new int[]{arrowX, arrowX + 20, arrowX},
+             new int[]{arrowY, arrowY + 10, arrowY + 20}, 3);  // Triangle shape for arrow
     }
 
     private void scrollScreen() {
         
+        parkingSpotSpawnCount++;
+        if(parkingSpotSpawnCount >= 50){
+            parkingSpot.generateParkingSpot();
+            parkingSpotSpawnCount = 0;
+        }
+        parkingSpot.moveParkingSpots(scrollSpeed);
+
+        // Check for parking success
+        if (parkingSpot.checkParking(truckX, truckY, 80, 40)) {
+            ((GameFrame) SwingUtilities.getWindowAncestor(this))
+            .getScorePanel().successfulDelivery();
+            
+            parkSuccess = true;  // Track if the player parked correctly
+        } else if (!parkSuccess) {
+            ((GameFrame) SwingUtilities.getWindowAncestor(this)).getScorePanel().missedDelivery();
+        }
+
         laneMoved = scrollSpeed + laneMoved;
         if (laneMoved >= roadHeight / maxLane) {
             laneMoved = 0;
@@ -196,43 +231,46 @@ public class GamePanel extends JPanel {
         }
     }
     
-    
+    private void drawVehicle(Graphics g){
+        g.setColor(Color.RED);
+        g.fillRect(truckX, truckY, 80, 40);
+    }
     
 
     // Handle vehicle movement based on key presses
-    public void moveVehicle(int keyCode) {
-        if (gameState != GAME_SCREEN) {
-            return;
-        } // Ignore key events if the game hasn't started
-        
-        //Up and down movement
-        int laneHeight = roadHeight / maxLane;
-        if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
-            currentLane--;
-            System.out.println("Key pressed" + keyCode);
-        } else if (keyCode == KeyEvent.VK_DOWN && currentLane < maxLane) {
-            currentLane++;
-        }
-        truckY = ((windowHeight / 2) - (roadHeight / 2)) + (laneHeight * (currentLane - 1));
-        
-        //Left to right movement
-        if (keyCode == KeyEvent.VK_LEFT && truckX > 0) {
-            truckX = truckX - 10;
-        } else if (keyCode == KeyEvent.VK_RIGHT && truckX < windowWidth - 80) {
-            truckX = truckX + 10;
-        }
-        repaint();
+  // Handle vehicle movement based on key presses
+public void moveVehicle(int keyCode) {
+    if (gameState != GAME_SCREEN) {
+        return;
+    } // Ignore key events if the game hasn't started
 
-        System.out.println("Current lane " + currentLane);
+    // Up and down movement
+    int laneHeight = roadHeight / maxLane;
+    if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
+        currentLane--;
+    } else if (keyCode == KeyEvent.VK_DOWN && currentLane < maxLane) {
+        currentLane++;
     }
 
-    // Draw the Vehicle (Truck)
-    private void drawVehicle(Graphics g) {
-        g.setColor(Color.RED);
-        int truckWidth = 80;
-        int truckHeight = 40;
-        g.fillRect(truckX, truckY, truckWidth, truckHeight);
+    
+
+    // Restrict movement to parking region when parking spot is available
+    if (keyCode == KeyEvent.VK_LEFT && truckX > 0) {
+        if (parkingSpot.canEnterParkingRegion(truckX, truckY, 80, 40)) {
+            truckX -= 10;  // Allow movement left into the parking region
+        }
+    } else if (keyCode == KeyEvent.VK_RIGHT && truckX < windowWidth - 80) {
+        if (parkingSpot.canEnterParkingRegion(truckX, truckY, 80, 40)) {
+            truckX += 10;  // Allow movement right into the parking region
+        }
     }
+
+    // Update truck's vertical position
+    truckY = ((windowHeight / 2) - (roadHeight / 2)) + (laneHeight * (currentLane - 1));
+
+    repaint();
+}
+
 
     
 }
