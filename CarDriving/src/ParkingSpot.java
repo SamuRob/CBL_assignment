@@ -4,8 +4,8 @@ import java.util.Random;
 
 public class ParkingSpot {
     private ArrayList<Rectangle> parkingSpots;
-    private int spotWidth = 60;
-    private int spotHeight = 100;
+    private int spotWidth = 100;
+    private int spotHeight = 50;
     private int roadWidth;
     private int roadX;
     private int roadY;

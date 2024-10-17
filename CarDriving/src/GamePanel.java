@@ -239,37 +239,44 @@ public class GamePanel extends JPanel {
 
     // Handle vehicle movement based on key presses
   // Handle vehicle movement based on key presses
-public void moveVehicle(int keyCode) {
+  public void moveVehicle(int keyCode) {
     if (gameState != GAME_SCREEN) {
         return;
-    } // Ignore key events if the game hasn't started
-
-    // Up and down movement
-    int laneHeight = roadHeight / maxLane;
-    if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
-        currentLane--;
-    } else if (keyCode == KeyEvent.VK_DOWN && currentLane < maxLane) {
-        currentLane++;
     }
 
+    int targetLane = currentLane;
     
+    int laneHeight = roadHeight/ maxLane;
 
-    // Restrict movement to parking region when parking spot is available
-    if (keyCode == KeyEvent.VK_LEFT && truckX > 0) {
-        if (parkingSpot.canEnterParkingRegion(truckX, truckY, 80, 40)) {
-            truckX -= 10;  // Allow movement left into the parking region
-        }
-    } else if (keyCode == KeyEvent.VK_RIGHT && truckX < windowWidth - 80) {
-        if (parkingSpot.canEnterParkingRegion(truckX, truckY, 80, 40)) {
-            truckX += 10;  // Allow movement right into the parking region
-        }
+    // Determine the new lane based on key press
+    if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
+        targetLane = currentLane - 1;
+    } else if (keyCode == KeyEvent.VK_DOWN && currentLane < maxLane) {
+        targetLane = currentLane + 1;
     }
-
-    // Update truck's vertical position
-    truckY = ((windowHeight / 2) - (roadHeight / 2)) + (laneHeight * (currentLane - 1));
-
-    repaint();
+    
+    // Smooth transition between lanes by gradually adjusting truckY
+    final int targetY = ((windowHeight / 2) - (roadHeight / 2)) + (laneHeight * (targetLane - 1));
+    Timer moveTimer = new Timer(10, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (truckY < targetY) {
+                truckY = Math.min(truckY + 5, targetY);  // Move truckY upwards
+            } else if (truckY > targetY) {
+                truckY = Math.max(truckY - 5, targetY);  // Move truckY downwards
+            }
+            repaint();  // Repaint the panel to reflect the updated position
+            
+            if (truckY == targetY) {
+                ((Timer)e.getSource()).stop();  // Stop the timer once the target position is reached
+            }
+        }
+    });
+    moveTimer.start();  // Start the movement timer
+    
+    currentLane = targetLane;  // Update the current lane after the transition
 }
+
 
 
     
