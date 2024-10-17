@@ -19,6 +19,8 @@ public class GamePanel extends JPanel {
     private int roadX;
     private int roadY;
 
+    private static final int SHOULDER_WIDTH = 50;
+
     private ParkingSpot parkingSpot;
     private int parkingSpotSpawnCount = 0;
     private boolean parkSuccess = false;
@@ -88,6 +90,10 @@ public class GamePanel extends JPanel {
         g.dispose();  // Clean up resources
     }
 
+    public int getMaxLane(){
+        return maxLane;
+    }
+
     // Start the game after clicking the start button
     public void startGame() {
         gameState = GAME_SCREEN;  // Switch to game screen state
@@ -120,6 +126,13 @@ public class GamePanel extends JPanel {
             drawStartScreen(g);  // Draw the start screen
         } else if (gameState == GAME_SCREEN) {
             drawRoad(g);  // Draw the road
+           // drawShoulder(g);
+            drawBottomLane(g);
+            drawTopLane(g);
+            g.setColor(Color.GRAY);
+            g.fillRect(roadX + roadWidth, roadY, SHOULDER_WIDTH, roadHeight);
+            
+            
             drawVehicle(g);  // Draw the vehicle
             parkingSpot.drawParkingSpots(g);  // Draw parking lanes and spots
             obstacles.drawObstacles(g);  // Draw obstacles
@@ -230,7 +243,23 @@ public class GamePanel extends JPanel {
             g.drawImage(roadImage, roadX + roadWidth - laneMoved, roadY, this);
         }
     }
+    private void drawBottomLane(Graphics g) {
+        
+        int laneHeight = 200 / maxLane;
+        int bottomLaneY = roadY + (maxLane * laneHeight);
+        g.setColor(Color.RED);
+        g.fillRect(roadX,bottomLaneY,roadWidth,SHOULDER_WIDTH);
+    }
+
+    private void drawTopLane(Graphics g) {
+        int topLaneY = roadY-50;  // Y-coordinate of the top lane
+        int laneHeight = 200/maxLane;
+        g.setColor(Color.BLUE);
+        g.fillRect(roadX, topLaneY, roadWidth, laneHeight);  // Draw the top lane
+    }
     
+    
+
     private void drawVehicle(Graphics g){
         g.setColor(Color.RED);
         g.fillRect(truckX, truckY, 80, 40);

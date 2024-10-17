@@ -43,17 +43,41 @@ public class ParkingSpot {
 
     // Generate parking spots in lanes
     public void generateParkingSpot() {
-        nextSpotLeft = random.nextBoolean();  // Randomly choose left or right side
-        int xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
         
-        // Choose a lane for the spot
-        int yPos = parkingLanesY[random.nextInt(parkingLanesY.length)];
+        
+        nextSpotLeft = false;  // Only generate on right side of da car
+        
+        int selection = random.nextInt(2) + 1; // choses 1 or 2
 
-        // Create the parking spot in the selected lane
-        parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
+        int yPos;
+        int xPos;
 
-        // Update the parking region to allow vehicle to move into it
-        parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
+
+        if (selection == 1) {
+
+            GamePanel gamePanel = new GamePanel();
+            int maxLane = gamePanel.getMaxLane();
+            yPos = 200 / maxLane +100;
+            xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
+            // Create the parking spot in the selected lane
+             parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
+
+            // Update the parking region to allow vehicle to move into it
+            parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
+        }
+        else{ // BottomLane parking
+
+            GamePanel gamePanel = new GamePanel();
+            int maxLane = gamePanel.getMaxLane();
+            yPos = 200 / maxLane + 350;
+            xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
+            // Create the parking spot in the selected lane
+             parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
+
+            // Update the parking region to allow vehicle to move into it
+            parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
+        }
+        
     }
 
     // Move parking spots with the screen
@@ -92,13 +116,10 @@ public class ParkingSpot {
     // Draw parking lanes and spots
     public void drawParkingSpots(Graphics g) {
         // Draw parking lanes
-        g.setColor(Color.BLUE);  // Use blue for parking lanes
+      //  g.setColor(Color.BLUE);  // Use blue for parking lanes
         for (int laneY : parkingLanesY) {
             g.drawLine(roadX - spotWidth, laneY, roadX + roadWidth + spotWidth, laneY);
         }
-
-
-        
         // Draw parking spots
         g.setColor(Color.GREEN);  // Green for parking spots
         for (Rectangle spot : parkingSpots) {

@@ -1,6 +1,9 @@
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import javax.imageio.*;
+
+import java.io.*;
 
 public class Obstacles {
     private ArrayList<Rectangle> obstacles;
@@ -14,6 +17,10 @@ public class Obstacles {
     private int maxLane;
     private Random rand;
 
+    private Image bananaImage;
+    private int bananaWidth;
+    private int bananaHeight;
+
     public Obstacles(int roadWidth, int roadX, int roadY, int laneHeight, int maxLane, int scrollSpeed) {
         this.roadWidth = roadWidth;
         this.roadX = roadX;
@@ -24,17 +31,40 @@ public class Obstacles {
 
         obstacles = new ArrayList<>();
         rand = new Random();
+
+        try{
+            bananaImage = ImageIO.read(getClass().getResource("/assets/banana.png"));
+            bananaWidth = bananaImage.getWidth(null);
+            bananaHeight = bananaImage.getHeight(null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // Generate random obstacles within the lanes of the road
-    public void generateObstacle() {
-        int lane = rand.nextInt(maxLane);  // Random lane number
-        int xPos = roadX + roadWidth;  // Start the obstacle just off the right edge of the road
-        int yPos = roadY + (lane * laneHeight) + (laneHeight - obstacleHeight) / 2;  // Center obstacle in the lane
+public void generateObstacle() {
+    int lane = rand.nextInt(maxLane);  // Random lane number
+    int xPos = roadX + roadWidth;  // Start the obstacle just off the right edge of the road
+    int yPos = roadY + (lane * laneHeight) + (laneHeight - obstacleHeight) / 2;  // Center obstacle in the lane
 
-        // Add a new obstacle to the list
-        obstacles.add(new Rectangle(xPos, yPos, obstacleWidth, obstacleHeight));
-    }
+    // Randomly decide if the obstacle is a rectangle or a banana
+    boolean isBanana = rand.nextBoolean();  // 50% chance to be a banana
+
+        if (isBanana) {
+            int bananaXPos = xPos;
+            int bananaYPos = roadY + (lane * laneHeight) + (laneHeight - bananaHeight) / 2;
+            // Add banana obstacle with banana dimensions
+            obstacles.add(new Rectangle(bananaXPos, bananaYPos, bananaWidth, bananaHeight));
+
+            System.out.println("BaANAN");
+        } else {
+            // Add regular rectangular obstacle
+            obstacles.add(new Rectangle(xPos, yPos, obstacleWidth, obstacleHeight));
+        }
+        
+}
+
 
     // Move obstacles with the screen
     public void moveObstacles() {
@@ -63,9 +93,17 @@ public class Obstacles {
 
     // Draw the obstacles
     public void drawObstacles(Graphics g) {
-        g.setColor(Color.BLUE);  // Set obstacle color
         for (Rectangle obstacle : obstacles) {
-            g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            // Check if the obstacle is a banana (by comparing its size to the banana image dimensions)
+            if (obstacle.width == bananaWidth && obstacle.height == bananaHeight) {
+                // Draw the banana image at the obstacle's position
+                g.drawImage(bananaImage, obstacle.x, obstacle.y, null);
+            } else {
+                // Draw regular rectangular obstacles
+                g.setColor(Color.BLUE);  // Set obstacle color
+                g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            }
         }
     }
+    
 }
