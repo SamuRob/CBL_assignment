@@ -15,6 +15,8 @@ public class ParkingSpot {
     private boolean nextSpotLeft = true;
     private Rectangle parkingRegion;  // The parking region
 
+    private boolean playerParked = false;
+
     // Define parking lanes
     private int[] parkingLanesY;  // Array for y-coordinates of parking lanes
     private int parkingLaneCount = 3;  // Number of parking lanes
@@ -57,7 +59,7 @@ public class ParkingSpot {
 
             GamePanel gamePanel = new GamePanel();
             int maxLane = gamePanel.getMaxLane();
-            yPos = 200 / maxLane +100;
+            yPos = 200 / maxLane + 100;
             xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
             // Create the parking spot in the selected lane
              parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
@@ -97,6 +99,33 @@ public class ParkingSpot {
         }
     }
 
+    public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight){
+        for (Rectangle spot : parkingSpots) {
+            if (new Rectangle(truckX, truckY, truckWidth, truckHeight).intersects(spot)) {
+                playerParked = true;
+                return true;  // Player is parked
+            }
+        }
+        playerParked = false;  // Player is no longer parked
+        return false;
+        }
+    
+        public void resetParkingStatus(){
+            playerParked = false;
+        }
+
+
+// Method to check if the truck can enter the parking region
+    public boolean canEnterParkingRegion(int truckX, int truckY, int truckWidth, int truckHeight) {
+        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth, truckHeight);
+        if (truckRect.intersects(parkingRegion)) {
+            playerParked = true;
+            return true;  // Player can enter the parking region
+        }
+        return false;
+    }
+
+/* 
     // Check if the truck can enter the parking region
     public boolean canEnterParkingRegion(int truckX, int truckY, int truckWidth, int truckHeight) {
         Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth, truckHeight);
@@ -112,7 +141,7 @@ public class ParkingSpot {
             }
             return false;
         }
-
+*/
     // Draw parking lanes and spots
     public void drawParkingSpots(Graphics g) {
         // Draw parking lanes

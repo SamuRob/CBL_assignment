@@ -149,6 +149,7 @@ public class GamePanel extends JPanel {
              new int[]{arrowY, arrowY + 10, arrowY + 20}, 3);  // Triangle shape for arrow
     }
 
+    /* 
     private void scrollScreen() {
         
         parkingSpotSpawnCount++;
@@ -205,6 +206,58 @@ public class GamePanel extends JPanel {
 
         repaint();
     }
+*/
+
+    private void scrollScreen() {
+        if (!parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {  // Only scroll if the player is not parked
+            parkingSpotSpawnCount++;
+            if (parkingSpotSpawnCount >= 50) {
+                parkingSpot.generateParkingSpot();
+                parkingSpotSpawnCount = 0;
+            }
+            parkingSpot.moveParkingSpots(scrollSpeed);
+
+            // Check for parking success
+            if (parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {
+                parkSuccess = true;  // Track if the player parked correctly
+            } else if (!parkSuccess) {
+                ((GameFrame) SwingUtilities.getWindowAncestor(this)).getScorePanel().missedDelivery();
+            }
+
+            laneMoved = scrollSpeed + laneMoved;
+            if (laneMoved >= roadHeight / maxLane) {
+                laneMoved = 0;
+            }
+
+            obstacleSpawnCount++;
+            if (obstacleSpawnCount >= 100) {
+                obstacles.generateObstacle();
+                obstacleSpawnCount = 0;
+            }
+
+            obstacles.moveObstacles();
+            // Check for collisions
+            if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
+                GameRunning = false;
+                gameTimer.stop();
+
+                // Show "Game Over" message
+                int response = JOptionPane.showOptionDialog(this, "Game Over! Do you want to play again?", 
+                                                            "Game Over", JOptionPane.YES_NO_OPTION, 
+                                                            JOptionPane.INFORMATION_MESSAGE, null, null, null);
+                if (response == JOptionPane.YES_OPTION) {
+                    restartGame();
+                } else {
+                    ((JFrame) SwingUtilities.getWindowAncestor(this)).dispose();
+                }
+            }
+
+            repaint();
+        } else {
+            // Pause the game, waiting for user to exit the parking spot
+            System.out.println("Player is parked, scrolling stopped.");
+        }
+    }
 
     private void restartGame() {
         // Reset game variables
@@ -247,14 +300,14 @@ public class GamePanel extends JPanel {
         
         int laneHeight = 200 / maxLane;
         int bottomLaneY = roadY + (maxLane * laneHeight);
-        g.setColor(Color.RED);
+        g.setColor(Color.LIGHT_GRAY);
         g.fillRect(roadX,bottomLaneY,roadWidth,SHOULDER_WIDTH);
     }
 
     private void drawTopLane(Graphics g) {
         int topLaneY = roadY-50;  // Y-coordinate of the top lane
         int laneHeight = 200/maxLane;
-        g.setColor(Color.BLUE);
+        g.setColor(Color.LIGHT_GRAY);
         g.fillRect(roadX, topLaneY, roadWidth, laneHeight);  // Draw the top lane
     }
     
@@ -268,6 +321,8 @@ public class GamePanel extends JPanel {
 
     // Handle vehicle movement based on key presses
   // Handle vehicle movement based on key presses
+  
+  /* 
   public void moveVehicle(int keyCode) {
     if (gameState != GAME_SCREEN) {
         return;
@@ -305,6 +360,51 @@ public class GamePanel extends JPanel {
     
     currentLane = targetLane;  // Update the current lane after the transition
 }
+    */
+
+    public void moveVehicle(int keyCode) {
+        if (gameState != GAME_SCREEN) {
+            return;
+        }
+    
+        if (parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {
+            // If player is parked, allow exiting with UP or DOWN arrow
+            if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN) {
+                parkingSpot.resetParkingStatus();  // Player is exiting the parking spot
+                parkSuccess = false;  // Reset parking success status
+            }
+        } else {
+            // Normal vehicle movement logic
+            int targetLane = currentLane;
+            int laneHeight = roadHeight / maxLane;
+    
+            if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
+                targetLane = currentLane - 1;
+            } else if (keyCode == KeyEvent.VK_DOWN && currentLane < maxLane) {
+                targetLane = currentLane + 1;
+            }
+    
+            final int targetY = ((windowHeight / 2) - (roadHeight / 2)) + (laneHeight * (targetLane - 1));
+            Timer moveTimer = new Timer(10, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (truckY < targetY) {
+                        truckY = Math.min(truckY + 5, targetY);  // Move truckY upwards
+                    } else if (truckY > targetY) {
+                        truckY = Math.max(truckY - 5, targetY);  // Move truckY downwards
+                    }
+                    repaint();
+                    
+                    if (truckY == targetY) {
+                        ((Timer)e.getSource()).stop();  // Stop the timer once the target position is reached
+                    }
+                }
+            });
+            moveTimer.start();  // Start the movement timer
+    
+            currentLane = targetLane;  // Update the current lane after the transition
+        }
+    }
 
 
 
