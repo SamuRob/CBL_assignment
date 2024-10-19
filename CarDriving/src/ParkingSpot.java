@@ -11,6 +11,13 @@ public class ParkingSpot {
     private int roadY;
     private int laneHeight;
     private Random random;
+    private int maxLane = 4;
+
+    private int distanceBeforeParking = 150;
+
+   // private int[] laneYposition;
+
+
 
     private boolean nextSpotLeft = true;
     private Rectangle parkingRegion;  // The parking region
@@ -30,21 +37,43 @@ public class ParkingSpot {
         this.roadX = roadX;
         this.roadY = roadY;
         this.laneHeight = laneHeight;
+        this.maxLane = maxLane;
         parkingSpots = new ArrayList<>();
         random = new Random();
 
         // Initialize parking lanes, offset from the main road
         parkingLanesY = new int[parkingLaneCount];
         for (int i = 0; i < parkingLaneCount; i++) {
-            parkingLanesY[i] = roadY + laneHeight + (i * laneHeight * 2);  // Adjust lane position
+            parkingLanesY[i] = roadY +  (i * laneHeight * 2);  // Adjust lane position
         }
 
         // Initialize parking region (this will be updated based on parking spots)
         parkingRegion = new Rectangle();
     }
 
-    // Generate parking spots in lanes
+
     public void generateParkingSpot() {
+        nextSpotLeft = false;  // Only generate on right side for now
+    
+        // Randomly select a parking lane
+       // int laneIndex = random.nextInt(maxLane);
+        
+        int laneIndex = random.nextInt(parkingLanesY.length);
+
+        // Use laneYPositions to determine the Y-position for the parking spot
+        int yPos = parkingLanesY[laneIndex];  // Adjust Y position based on the lane
+
+        int xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
+        parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
+    
+        // Update the parking region to allow the vehicle to move into it
+        parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
+    }
+    
+    
+
+    // Generate parking spots in lanes
+   /*  public void generateParkingSpot() {
         
         
         nextSpotLeft = false;  // Only generate on right side of da car
@@ -80,7 +109,7 @@ public class ParkingSpot {
             parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
         }
         
-    }
+    }*/
 
     // Move parking spots with the screen
     public void moveParkingSpots(int scrollSpeed) {
@@ -132,13 +161,13 @@ public class ParkingSpot {
     }
         */
 
-        public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
+       /*(int truckX, int truckY, int truckWidth, int truckHeight) {
             for (Rectangle spot : parkingSpots) {
                 Rectangle parkingBuffer = new Rectangle(
-                    spot.x - 10,
-                    spot.y - 10,
-                    spot.width + 20,
-                    spot.height + 20
+                    spot.x,
+                    spot.y,
+                    spot.width,
+                    spot.height
                 );
                 if (parkingBuffer.contains(truckX, truckY, truckWidth, truckHeight)) {
                     playerParked = true;
@@ -147,7 +176,19 @@ public class ParkingSpot {
             }
             playerParked = false;
             return false;
+        }*/
+        public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
+            for (Rectangle spot : parkingSpots) {
+                // Check if the truck is completely inside the parking spot
+                if (spot.contains(truckX, truckY-100) && spot.contains(truckX + truckWidth, truckY + truckHeight-100)) {
+                    playerParked = true;
+                    return true;
+                }
+            }
+            playerParked = false;
+            return false;
         }
+        
         
 
        /*  public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
@@ -197,7 +238,20 @@ public class ParkingSpot {
             return false;
         }
 */
-    // Draw parking lanes and spots
+
+public boolean isSpotApproaching(int truckX) {
+    for (Rectangle spot : parkingSpots) {
+        // Check if the parking spot is within the required distance before it reaches the truck
+        if (spot.x - truckX <= distanceBeforeParking && spot.x > truckX) {
+            System.out.println("Parking spot is approaching");
+            return true;
+        }
+    }
+    return false;
+}
+
+
+// Draw parking lanes and spots
 public void drawParkingSpots(Graphics g) {
         // Draw parking lanes
       //  g.setColor(Color.BLUE);  // Use blue for parking lanes
