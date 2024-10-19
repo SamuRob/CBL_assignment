@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class ParkingSpot {
     private ArrayList<Rectangle> parkingSpots;
-    private int spotWidth = 100;
+    private int spotWidth = 90;
     private int spotHeight = 50;
     private int roadWidth;
     private int roadX;
@@ -99,7 +99,7 @@ public class ParkingSpot {
         }
     }
 
-    public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight){
+    /*public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight){
         for (Rectangle spot : parkingSpots) {
             if (new Rectangle(truckX, truckY, truckWidth, truckHeight).intersects(spot)) {
                 playerParked = true;
@@ -113,6 +113,61 @@ public class ParkingSpot {
         public void resetParkingStatus(){
             playerParked = false;
         }
+*/
+    public void resetParkingStatus() {
+        playerParked = false;  // Reset the parking status
+    }
+
+
+   /*  public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
+        for (Rectangle spot : parkingSpots) {
+            // Use contains to ensure the truck is fully within the parking spot
+            if (spot.contains(truckX, truckY, truckWidth, truckHeight)) {
+                playerParked = true;
+                return true;  // Player is fully parked inside the spot
+            }
+        }
+        playerParked = false;  // Player is no longer parked
+        return false;
+    }
+        */
+
+        public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
+            for (Rectangle spot : parkingSpots) {
+                Rectangle parkingBuffer = new Rectangle(
+                    spot.x - 10,
+                    spot.y - 10,
+                    spot.width + 20,
+                    spot.height + 20
+                );
+                if (parkingBuffer.contains(truckX, truckY, truckWidth, truckHeight)) {
+                    playerParked = true;
+                    return true;
+                }
+            }
+            playerParked = false;
+            return false;
+        }
+        
+
+       /*  public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
+            for (Rectangle spot : parkingSpots) {
+                // Add a small buffer (e.g., 10 pixels) to allow lenient parking
+                Rectangle parkingBuffer = new Rectangle(
+                    spot.x - 10, 
+                    spot.y - 10, 
+                    spot.width + 20, 
+                    spot.height + 20
+                );
+                if (parkingBuffer.contains(truckX, truckY, truckWidth, truckHeight)) {
+                    playerParked = true;
+                    return true;  // Player is fully parked inside the spot
+                }
+            }
+            playerParked = false;  // Player is no longer parked
+            return false;
+        }
+        */
 
 
 // Method to check if the truck can enter the parking region
@@ -143,7 +198,7 @@ public class ParkingSpot {
         }
 */
     // Draw parking lanes and spots
-    public void drawParkingSpots(Graphics g) {
+public void drawParkingSpots(Graphics g) {
         // Draw parking lanes
       //  g.setColor(Color.BLUE);  // Use blue for parking lanes
         for (int laneY : parkingLanesY) {
@@ -152,7 +207,7 @@ public class ParkingSpot {
         // Draw parking spots
         g.setColor(Color.GREEN);  // Green for parking spots
         for (Rectangle spot : parkingSpots) {
-            g.fillRect(spot.x, spot.y, spot.width, spot.height);
+            g.fillRect(spot.x, spot.y+100, spot.width, spot.height);
         }
 
         // Draw the parking region

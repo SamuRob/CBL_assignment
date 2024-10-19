@@ -19,6 +19,8 @@ public class GamePanel extends JPanel {
     private int roadX;
     private int roadY;
 
+    private boolean gamePaused = false;
+
     private static final int SHOULDER_WIDTH = 50;
 
     private ParkingSpot parkingSpot;
@@ -208,7 +210,7 @@ public class GamePanel extends JPanel {
     }
 */
 
-    private void scrollScreen() {
+   /*  private void scrollScreen() {
         if (!parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {  // Only scroll if the player is not parked
             parkingSpotSpawnCount++;
             if (parkingSpotSpawnCount >= 50) {
@@ -257,7 +259,235 @@ public class GamePanel extends JPanel {
             // Pause the game, waiting for user to exit the parking spot
             System.out.println("Player is parked, scrolling stopped.");
         }
+    }*/
+   /*  private void scrollScreen() {
+        // If the player is parked, stop scrolling but allow movement to exit the parking spot
+        if (!parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {
+            parkingSpotSpawnCount++;
+            if (parkingSpotSpawnCount >= 50) {
+                parkingSpot.generateParkingSpot();
+                parkingSpotSpawnCount = 0;
+            }
+            parkingSpot.moveParkingSpots(scrollSpeed);
+    
+            // Handle lane scrolling
+            laneMoved = scrollSpeed + laneMoved;
+            if (laneMoved >= roadHeight / maxLane) {
+                laneMoved = 0;
+            }
+    
+            obstacleSpawnCount++;
+            if (obstacleSpawnCount >= 100) {
+                obstacles.generateObstacle();
+                obstacleSpawnCount = 0;
+            }
+    
+            obstacles.moveObstacles();
+    
+            // Check for collisions
+            if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
+                GameRunning = false;
+                gameTimer.stop();
+    
+                // Show a "Game Over" message to the user
+                int response = JOptionPane.showOptionDialog(this, 
+                    "Game Over! Do you want to play again?", 
+                    "Game Over", 
+                    JOptionPane.YES_NO_OPTION, 
+                    JOptionPane.INFORMATION_MESSAGE, 
+                    null, null, null);
+    
+                if (response == JOptionPane.YES_OPTION) {
+                    restartGame();
+                } else {
+                    ((JFrame) SwingUtilities.getWindowAncestor(this)).dispose();
+                }
+            }
+        } else {
+            // When parked, pause scrolling but allow movement to exit
+            System.out.println("Player is parked, scrolling stopped.");
+        }
+    
+        repaint();
     }
+    */
+    
+
+    /*private void scrollScreen() {
+        if (gamePaused) {
+            return;  // If the game is paused, do nothing
+        }
+
+        // Check if the player is parked
+        if (parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {
+            gamePaused = true;  // Stop the game when parked
+            gameTimer.stop();   // Stop the timer, pausing the game
+            System.out.println("Game paused. Player parked successfully.");
+        } else {
+            // Continue scrolling and spawning obstacles
+            parkingSpotSpawnCount++;
+            if (parkingSpotSpawnCount >= 50) {
+                parkingSpot.generateParkingSpot();
+                parkingSpotSpawnCount = 0;
+            }
+            parkingSpot.moveParkingSpots(scrollSpeed);
+
+            laneMoved = scrollSpeed + laneMoved;
+            if (laneMoved >= roadHeight / maxLane) {
+                laneMoved = 0;
+            }
+
+            obstacleSpawnCount++;
+            if (obstacleSpawnCount >= 100) {
+                obstacles.generateObstacle();
+                obstacleSpawnCount = 0;
+            }
+
+            obstacles.moveObstacles();
+
+            // Check for collisions
+            if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
+                GameRunning = false;
+                gameTimer.stop();
+
+                // Show "Game Over" message
+                int response = JOptionPane.showOptionDialog(this, "Game Over! Do you want to play again?", 
+                                                            "Game Over", JOptionPane.YES_NO_OPTION, 
+                                                            JOptionPane.INFORMATION_MESSAGE, null, null, null);
+                if (response == JOptionPane.YES_OPTION) {
+                    restartGame();
+                } else {
+                    ((JFrame) SwingUtilities.getWindowAncestor(this)).dispose();
+                }
+            }
+
+            repaint();  // Continue the game and scroll screen
+        }
+    }
+        */
+
+      /*   private void scrollScreen() {
+            // If the game is paused, exit the method immediately
+            if (gamePaused) {
+                return;
+            }
+        
+            // Check if the player is parked
+            if (parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {
+                gamePaused = true;  // Set the game to paused state
+                System.out.println("Game paused. Player parked successfully.");
+        
+                // Optionally, display a message to the player
+                JOptionPane.showMessageDialog(this, "Car parked! Game paused.");
+                return;  // Exit the method after pausing
+            }
+        
+            // Continue normal game logic: scrolling screen, spawning obstacles
+            parkingSpotSpawnCount++;
+            if (parkingSpotSpawnCount >= 50) {
+                parkingSpot.generateParkingSpot();
+                parkingSpotSpawnCount = 0;
+            }
+            parkingSpot.moveParkingSpots(scrollSpeed);
+        
+            laneMoved = scrollSpeed + laneMoved;
+            if (laneMoved >= roadHeight / maxLane) {
+                laneMoved = 0;
+            }
+        
+            obstacleSpawnCount++;
+            if (obstacleSpawnCount >= 100) {
+                obstacles.generateObstacle();
+                obstacleSpawnCount = 0;
+            }
+        
+            obstacles.moveObstacles();
+        
+            // Check for collisions
+            if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
+                GameRunning = false;
+                gameTimer.stop();
+        
+                // Show "Game Over" message
+                int response = JOptionPane.showOptionDialog(this, "Game Over! Do you want to play again?", 
+                                                            "Game Over", JOptionPane.YES_NO_OPTION, 
+                                                            JOptionPane.INFORMATION_MESSAGE, null, null, null);
+                if (response == JOptionPane.YES_OPTION) {
+                    restartGame();
+                } else {
+                    ((JFrame) SwingUtilities.getWindowAncestor(this)).dispose();
+                }
+            }
+        
+            repaint();  // Continue the game and scroll screen
+        }
+       */
+      
+       private void scrollScreen() {
+        // If the game is paused, exit the method immediately
+        if (gamePaused) {
+            return;
+        }
+    
+        // Check if the player is parked
+        if (parkingSpot.isPlayerParked(truckX, truckY, 40, 40)) {
+            gamePaused = true;  // Set the game to paused state
+            GameRunning = false;  // Stop game logic
+            gameTimer.stop();  // Stop the game timer
+            System.out.println("Game paused. Player parked successfully.");
+    
+            // Optionally, display a message to the player
+            JOptionPane.showMessageDialog(this, "Car parked! Game paused.");
+            return;  // Exit the method after pausing
+        }
+    
+        // Continue normal game logic: scrolling screen, spawning obstacles
+        parkingSpotSpawnCount++;
+        if (parkingSpotSpawnCount >= 50) {
+            parkingSpot.generateParkingSpot();
+            parkingSpotSpawnCount = 0;
+        }
+        parkingSpot.moveParkingSpots(scrollSpeed);
+    
+        laneMoved = scrollSpeed + laneMoved;
+        if (laneMoved >= roadHeight / maxLane) {
+            laneMoved = 0;
+        }
+    
+        obstacleSpawnCount++;
+        if (obstacleSpawnCount >= 100) {
+            obstacles.generateObstacle();
+            obstacleSpawnCount = 0;
+        }
+    
+        obstacles.moveObstacles();
+    
+        // Check for collisions
+        if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
+            GameRunning = false;
+            gameTimer.stop();
+    
+            // Show "Game Over" message
+            int response = JOptionPane.showOptionDialog(this, "Game Over! Do you want to play again?", 
+                                                        "Game Over", JOptionPane.YES_NO_OPTION, 
+                                                        JOptionPane.INFORMATION_MESSAGE, null, null, null);
+            if (response == JOptionPane.YES_OPTION) {
+                restartGame();
+            } else {
+                ((JFrame) SwingUtilities.getWindowAncestor(this)).dispose();
+            }
+        }
+    
+        repaint();  // Continue the game and scroll screen
+    }
+    
+          
+
+    
+
+    // Add a KeyListener to resume the game when a key is pressed
+
+
 
     private void restartGame() {
         // Reset game variables
@@ -305,8 +535,8 @@ public class GamePanel extends JPanel {
     }
 
     private void drawTopLane(Graphics g) {
-        int topLaneY = roadY-50;  // Y-coordinate of the top lane
-        int laneHeight = 200/maxLane;
+        int topLaneY = roadY - 50;  // Y-coordinate of the top lane
+        int laneHeight = 200 / maxLane;
         g.setColor(Color.LIGHT_GRAY);
         g.fillRect(roadX, topLaneY, roadWidth, laneHeight);  // Draw the top lane
     }
@@ -315,7 +545,7 @@ public class GamePanel extends JPanel {
 
     private void drawVehicle(Graphics g){
         g.setColor(Color.RED);
-        g.fillRect(truckX, truckY, 80, 40);
+        g.fillRect(truckX, truckY, 40, 40);
     }
     
 
