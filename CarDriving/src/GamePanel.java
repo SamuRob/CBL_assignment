@@ -423,7 +423,7 @@ public class GamePanel extends JPanel {
         }
        */
       
-       private void scrollScreen() {
+       /*private void scrollScreen() {
         // If the game is paused, exit the method immediately
         if (gamePaused) {
             return;
@@ -484,6 +484,56 @@ public class GamePanel extends JPanel {
     
             repaint();  // Continue the game and scroll screen
         }
+    }
+    */
+
+    private void scrollScreen() {
+        // Stop scrolling if the game is paused
+        if (gamePaused) {
+            return;
+        }
+    
+        // Parking spot generation and movement logic
+        parkingSpotSpawnCount++;
+        if (parkingSpotSpawnCount >= 50) {
+            parkingSpot.generateParkingSpot();
+            parkingSpotSpawnCount = 0;
+        }
+        parkingSpot.moveParkingSpots(scrollSpeed);
+    
+        // Lane scrolling logic
+        laneMoved = scrollSpeed + laneMoved;
+        if (laneMoved >= roadHeight / maxLane) {
+            laneMoved = 0;
+        }
+    
+        // Spawn and move obstacles
+        obstacleSpawnCount++;
+        if (obstacleSpawnCount >= 100) {
+            obstacles.generateObstacle();
+            obstacleSpawnCount = 0;
+        }
+        obstacles.moveObstacles();
+    
+        // Check if the player is parked (Pause the game if true)
+        if (parkingSpot.isPlayerParked(truckX, truckY, 80, 40)) {
+            gamePaused = true;  // Pause the game
+            GameRunning = false;  // Stop game logic
+            gameTimer.stop();  // Stop the game timer
+            System.out.println("Game paused. Player parked successfully.");
+            return;  // Exit the method after pausing
+        }
+    
+        // Check for collisions
+        if (obstacles.checkCollision(truckX, truckY, 80, 40)) {
+            GameRunning = false;
+            gameTimer.stop();
+    
+            // Handle game over logic (e.g., restarting the game or ending it)
+            // [your existing logic for game over]
+        }
+    
+        repaint();  // Continue scrolling and repaint the screen
     }
     
     
@@ -692,6 +742,64 @@ public class GamePanel extends JPanel {
             return;
         }
     
+        // If the game is paused, allow it to resume when the up arrow key is pressed
+        if (gamePaused) {
+            if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN) {
+                // Remove the current parking spot after the game resumes (if UP is pressed)
+                if (keyCode == KeyEvent.VK_UP) {
+                    parkingSpot.removeCurrentSpot();  // New method to remove the current parking spot
+                    System.out.println("Parking spot removed after pressing UP.");
+                }
+    
+                // Resume the game
+                gamePaused = false;  
+                GameRunning = true;
+                gameTimer.start();  // Start the game timer again
+                System.out.println("Game resumed");
+            }
+            return;  // Exit the method after resuming
+        }
+    
+        // Normal movement logic if the game is not paused
+        int targetLane = currentLane;
+        int laneHeight = roadHeight / maxLane;
+    
+        if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
+            targetLane = currentLane - 1;
+        } else if (keyCode == KeyEvent.VK_DOWN && currentLane < maxLane - 2) {
+            targetLane = currentLane + 1;
+        }
+    
+        // Smooth lane transition logic
+        final int targetY = ((windowHeight / 2) - (roadHeight / 2)) + (laneHeight * targetLane);
+        Timer moveTimer = new Timer(10, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (truckY < targetY) {
+                    truckY = Math.min(truckY + 5, targetY);  // Move truck upwards
+                } else if (truckY > targetY) {
+                    truckY = Math.max(truckY - 5, targetY);  // Move truck downwards
+                }
+                repaint();  // Repaint the panel to reflect the updated position
+    
+                if (truckY == targetY) {
+                    ((Timer) e.getSource()).stop();  // Stop the timer once the target position is reached
+                }
+            }
+        });
+        moveTimer.start();  // Start the movement timer
+    
+        currentLane = targetLane;  // Update the current lane after the transition
+    }
+    
+    
+
+    /* 
+    public void moveVehicle(int keyCode) {
+        if (gameState != GAME_SCREEN) {
+            return;
+        }
+    
         // Debugging message for parking spot proximity
         boolean canMoveToTopOrBottom = parkingSpot.isSpotApproaching(truckX);
         System.out.println("Can move to top/bottom: " + canMoveToTopOrBottom);
@@ -751,7 +859,7 @@ public class GamePanel extends JPanel {
             currentLane = targetLane;  // Update the current lane after the transition
         }
     }
-    
+    */
     
 
    /*  public void moveVehicle(int keyCode) {
