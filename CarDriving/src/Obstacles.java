@@ -43,27 +43,26 @@ public class Obstacles {
     }
 
     // Generate random obstacles within the lanes of the road
-public void generateObstacle() {
-    int lane = rand.nextInt(maxLane);  // Random lane number
-    int xPos = roadX + roadWidth;  // Start the obstacle just off the right edge of the road
-    int yPos = roadY + (lane * laneHeight) + (laneHeight - obstacleHeight) / 2;  // Center obstacle in the lane
-
-    // Randomly decide if the obstacle is a rectangle or a banana
-    boolean isBanana = rand.nextBoolean();  // 50% chance to be a banana
-
+    public void generateObstacle() {
+        int lane = rand.nextInt(maxLane - 2) + 1;  // Obstacles spawn only in intermediate lanes 2, 3, or 4
+        int xPos = roadX + roadWidth;  // Start the obstacle just off the right edge of the road
+        int yPos = roadY + (lane * laneHeight) + (laneHeight - obstacleHeight) / 2;  // Center obstacle in the lane
+    
+        // Check if the obstacle is a banana or a rectangular block
+        boolean isBanana = rand.nextBoolean();  // 50% chance for banana
+        
         if (isBanana) {
-            int bananaXPos = xPos;
-            int bananaYPos = roadY + (lane * laneHeight) + (laneHeight - bananaHeight) / 2;
-            // Add banana obstacle with banana dimensions
-            obstacles.add(new Rectangle(bananaXPos, bananaYPos, bananaWidth, bananaHeight));
-
-            System.out.println("BaANAN");
+            int bananaWidth = (int) (laneHeight * 0.8);  // Adjust size to fit within lane
+            int bananaHeight = (int) (laneHeight * 0.8);  // Adjust height to fit within lane
+            int bananaYPos = roadY + (lane * laneHeight) + (laneHeight - bananaHeight) / 2;  // Center within lane
+            obstacles.add(new Rectangle(xPos, bananaYPos, bananaWidth, bananaHeight));
         } else {
-            // Add regular rectangular obstacle
+            // Rectangular block
             obstacles.add(new Rectangle(xPos, yPos, obstacleWidth, obstacleHeight));
         }
-        
-}
+    }
+    
+    
 
 
     // Move obstacles with the screen
@@ -81,15 +80,26 @@ public void generateObstacle() {
     }
 
     // Check for collisions with the truck
+// Check for collisions with the truck
+// Check for collisions with a threshold
+// Check for collisions with the truck (no shrinking of boundaries)
     public boolean checkCollision(int truckX, int truckY, int truckWidth, int truckHeight) {
-        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth, truckHeight);
+        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth - 10, truckHeight); 
+        // -10 fixes gap between car and obstacle
         for (Rectangle obstacle : obstacles) {
-            if (truckRect.intersects(obstacle)) {
+            Rectangle obstacleRect = new Rectangle(obstacle.x, obstacle.y, obstacle.width, obstacle.height); // No shrinking
+            if (truckRect.intersects(obstacleRect)) {
+                System.out.println("Collision detected!");
+                System.out.println("Truck: " + truckRect);
+                System.out.println("Obstacle: " + obstacleRect);
                 return true;  // Collision detected
             }
         }
         return false;
     }
+
+
+
 
     // Draw the obstacles
     public void drawObstacles(Graphics g) {

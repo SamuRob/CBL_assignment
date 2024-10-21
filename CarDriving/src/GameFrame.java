@@ -2,68 +2,66 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-
 // The main game frame class
 public class GameFrame extends JFrame {
 
     private GamePanel gamePanel;
     private ScorePanel scorePanel;
-    private JButton startButton;
-    private JButton instructionButton;
     private boolean gameStarted = false;
 
-     /**
-      * Intro from start screen to game itself.
-      */
-    public GameFrame(){
-        super("Hizmet delivery game");
+    /**
+     * Intro from start screen to game itself.
+     */
+    public GameFrame() {
+        super("Hizmet Delivery Game");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Closes when press x in right corner
         setLayout(new BorderLayout());
-        setResizable(false); // Stops player from resizing window
-        
+        setResizable(false); // Stops player from resizing the window
+
         gamePanel = new GamePanel();
         add(gamePanel, BorderLayout.CENTER);
 
-        gamePanel.setFocusable(true);
-
         scorePanel = new ScorePanel();
-        add(scorePanel,BorderLayout.NORTH);
-       // startButton = new JButton("Start Game:");
+        add(scorePanel, BorderLayout.NORTH);
 
-       // instructionButton = new JButton("Instructions");
+        // Ensure the game panel gets focus after making the window visible
+        SwingUtilities.invokeLater(() -> gamePanel.requestFocusInWindow());
 
+        // Add key listener for vehicle movement
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (gameStarted) {
                     gamePanel.moveVehicle(e.getKeyCode());
                 }
+                // Ensure focus is maintained after a key press
+                gamePanel.requestFocusInWindow();
             }
         });
 
-        gamePanel.setFocusable(true);
-        gamePanel.requestFocusInWindow();
+        gamePanel.setFocusable(true);  // Ensure the panel is focusable
 
-        setVisible(true); // Makes window visible to the player
-        gamePanel.requestFocusInWindow();
-        //Ensure panel has focus for key events
-        //such as left/right and up/down movements
+        // Make the window visible to the player
+        setVisible(true);
+
+        // Ensure panel has focus once the window becomes visible
+        SwingUtilities.invokeLater(() -> gamePanel.requestFocusInWindow());
     }
 
+    // Method to handle game start
     public void setGameStarted(boolean started) {
         this.gameStarted = started;
         if (started) {
-            scorePanel.reset();
+            scorePanel.reset();  // Reset the score when the game starts
         }
     }
-    
-    public ScorePanel getScorePanel(){
+
+    public ScorePanel getScorePanel() {
         return scorePanel;
     }
-    
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         new GameFrame();
     }
 }
