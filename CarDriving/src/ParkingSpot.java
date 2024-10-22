@@ -83,7 +83,7 @@ public class ParkingSpot {
 
     public boolean isParkingSpotApproaching(int truckX, int scrollSpeed) {
         // Calculate the distance in pixels the truck will cover in 1.5 seconds
-        int distanceIn1_5Seconds = (int) (scrollSpeed * 30 * 1.5);  // 30 is because the game updates every 30ms
+        int distanceIn1_5Seconds = (int) (scrollSpeed * 30 * 1);  // 30 is because the game updates every 30ms
     
         // Check if any parking spot is within this distance ahead of the truck
         for (Rectangle spot : parkingSpots) {

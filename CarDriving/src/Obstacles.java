@@ -63,6 +63,7 @@ public class Obstacles {
     }
     
     
+    
 
 
     // Move obstacles with the screen
@@ -79,15 +80,16 @@ public class Obstacles {
         }
     }
 
-    // Check for collisions with the truck
-// Check for collisions with the truck
-// Check for collisions with a threshold
-// Check for collisions with the truck (no shrinking of boundaries)
-    public boolean checkCollision(int truckX, int truckY, int truckWidth, int truckHeight) {
-        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth - 10, truckHeight); 
-        // -10 fixes gap between car and obstacle
+  
+    public boolean checkCollision(int truckX, int truckY, int truckWidth, int truckHeight, boolean isImmune) {
+        if (isImmune) {
+            System.out.println("Vehicle is immune, skipping collision check.");
+            return false;  // If the vehicle is immune, no collision is detected
+        }
+
+        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth - 10, truckHeight);  // -10 fixes gap between car and obstacle
         for (Rectangle obstacle : obstacles) {
-            Rectangle obstacleRect = new Rectangle(obstacle.x, obstacle.y, obstacle.width, obstacle.height); // No shrinking
+            Rectangle obstacleRect = new Rectangle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);  // No shrinking
             if (truckRect.intersects(obstacleRect)) {
                 System.out.println("Collision detected!");
                 System.out.println("Truck: " + truckRect);
@@ -97,6 +99,7 @@ public class Obstacles {
         }
         return false;
     }
+
 
 
 

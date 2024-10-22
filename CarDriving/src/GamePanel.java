@@ -14,6 +14,10 @@ public class GamePanel extends JPanel {
     private int scrollSpeed = 5;
     private boolean GameRunning = false;
     private int windowHeight, windowWidth;
+    private int countdown = 3;
+
+    private boolean isImmune = false; //immunity to vehicle after leaving parking
+
 
     private boolean collisionDisabled = false;
 
@@ -114,7 +118,8 @@ public class GamePanel extends JPanel {
     // Start the game after clicking the start button
     public void startGame() {
         gameState = GAME_SCREEN;  // Switch to game screen state
-        GameRunning = true;
+        GameRunning = false;  // Temporarily set the game as not running
+        countdown = 3;  // Start countdown from 3
     
         // Set the car to start in the middle lane (lane 3)
         currentLane = 3;
@@ -127,16 +132,36 @@ public class GamePanel extends JPanel {
         startButton.setFocusable(false);  // Prevent start button from focus
         repaint();  // Repaint the screen without the Start screen
     
-        gameTimer.start();  // Start the game timer
-        requestFocusInWindow();  // Ensure focus is on game panel after game begins
+        // Timer for the countdown
+        Timer countdownTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                countdown--;  // Decrease countdown each second
+                repaint();  // Repaint to show the updated countdown
+                
+                if (countdown <= 0) {
+                    ((Timer) e.getSource()).stop();  // Stop the countdown timer
+                    GameRunning = true;  // Set the game as running
+                    gameTimer.start();  // Start the game timer and the scrolling effect
+                    requestFocusInWindow();  // Ensure focus is on game panel after game begins
+                    
+                    // The holy grail: ensures the game frame knows the game has started
+                    ((GameFrame) SwingUtilities.getWindowAncestor(GamePanel.this)).setGameStarted(true);
+                    
+                    System.out.println("Game started!");
+                }
+            }
+        });
     
+        countdownTimer.start();  // Start the countdown timer
+    
+        // Log focus status (for debugging)
         System.out.println("Is GamePanel Focused: " + isFocusOwner());
-    
-        // THE HOLY GRAIL WHICH MAKES THE CAR MOVE DO NOT DELETE PLEASE
-        ((GameFrame) SwingUtilities.getWindowAncestor(this)).setGameStarted(true);
     }
     
+    
 
+    
     
     @Override
     protected void paintComponent(Graphics g) {
@@ -146,17 +171,31 @@ public class GamePanel extends JPanel {
             drawStartScreen(g);  // Draw the start screen
         } else if (gameState == GAME_SCREEN) {
             drawRoad(g);  // Draw the road
-            
-            // Draw parking spots before drawing the car
             parkingSpot.drawParkingSpots(g);  // Draw parking lanes and spots
-            
             obstacles.drawObstacles(g);  // Draw obstacles
-            
             drawVehicle(g);  // Draw the vehicle (car) after the parking spot, so it's on top
-            
             drawAnticipationArrow(g);  // Draw anticipation arrow
+    
+            // Draw the countdown on top of the road and other elements
+            if (countdown > 0) {
+                drawCountdown(g);  // Draw the countdown if it's still ongoing
+            }
         }
     }
+    
+    
+    private void drawCountdown(Graphics g) {
+        g.setColor(Color.BLACK);  // Set the text color
+        g.setFont(new Font("Arial", Font.BOLD, 72));  // Set a large font for the countdown
+        
+        String countdownText = countdown > 0 ? String.valueOf(countdown) : "GO!";  // Show numbers or "GO!"
+        int textWidth = g.getFontMetrics().stringWidth(countdownText);  // Measure the width of the text
+        int textX = (windowWidth - textWidth) / 2;  // Center the text horizontally
+        int textY = windowHeight / 2;  // Center the text vertically
+        
+        g.drawString(countdownText, textX, textY);  // Draw the countdown text
+    }
+    
     
     
 
@@ -204,7 +243,7 @@ public class GamePanel extends JPanel {
         }
     
         // Check for collisions with obstacles
-        if (obstacles.checkCollision(truckX, truckY, carWidth, carHeight)) {
+        if (obstacles.checkCollision(truckX, truckY, carWidth, carHeight, isImmune)) {
             GameRunning = false;
             gameTimer.stop();
             // Handle game over logic (e.g., restarting the game or ending it)
@@ -294,20 +333,38 @@ public class GamePanel extends JPanel {
         if (gameState != GAME_SCREEN) {
             return;
         }
-    
+
+        // Check if the car is within 1 second of the parking spot
+        boolean canEnterSpecialLanes = parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed);
+
         // If the car is parked, remove the parking spot and force move to a middle lane
         if (parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
             if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN) {
                 // Remove the current parking spot
                 parkingSpot.removeParkedSpot(truckX, truckY, carWidth, carHeight);
-    
+
                 parkingSpot.resetParkingStatus();  // Reset the parking status
                 gamePaused = false;  // Unpause the game
                 gameTimer.start();  // Restart the game timer to resume scrolling
                 collisionDisabled = true;  // Disable collisions during transition
-    
+
+                // Enable 1 second of immunity after exiting parking
+                isImmune = true;
+                System.out.println("Vehicle is immune for 1 second!");
+
+                // Timer to disable immunity after 1 second
+                Timer immunityTimer = new Timer(1000, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        isImmune = false;  // Disable immunity after 1 second
+                        System.out.println("Immunity expired.");
+                    }
+                });
+                immunityTimer.setRepeats(false);  // Ensure the timer only runs once
+                immunityTimer.start();
+
                 System.out.println("Player exited parking spot. Parking spot removed. Game resumed.");
-    
+
                 // Automatically move the car to a random middle lane (2, 3, or 4)
                 final int middleLane = new Random().nextInt(3) + 2;  // Randomly choose lane 2, 3, or 4
                 moveToLane(middleLane);  // Move the car to a chosen middle lane
@@ -316,7 +373,7 @@ public class GamePanel extends JPanel {
             // Normal vehicle movement logic (same as your existing logic)
             final int targetLane;
             int laneHeight = roadHeight / maxLane;
-    
+
             if (keyCode == KeyEvent.VK_UP && currentLane > 1) {
                 targetLane = currentLane - 1;
             } else if (keyCode == KeyEvent.VK_DOWN && currentLane < maxLane) {
@@ -324,7 +381,13 @@ public class GamePanel extends JPanel {
             } else {
                 return;  // If no valid movement, exit early
             }
-    
+
+            // Restrict movement to top (lane 1) and bottom (lane 5) lanes unless 1 second before the parking spot
+            if ((targetLane == 1 || targetLane == 5) && !canEnterSpecialLanes) {
+                System.out.println("You can't enter top or bottom lanes yet!");
+                return;  // Prevent moving to top or bottom lanes unless near the parking spot
+            }
+
             final int targetY = ((windowHeight / 2) - (roadHeight / 2)) + (laneHeight * (targetLane - 1));
             Timer moveTimer = new Timer(10, e -> {
                 if (truckY < targetY) {
@@ -333,7 +396,7 @@ public class GamePanel extends JPanel {
                     truckY = Math.max(truckY - 5, targetY);  // Move truck downwards
                 }
                 repaint();  // Repaint the panel to reflect the updated position
-    
+
                 if (truckY == targetY) {
                     ((Timer) e.getSource()).stop();  // Stop the timer once the target position is reached
                     collisionDisabled = false;  // Re-enable collisions after reaching a middle lane
@@ -341,10 +404,12 @@ public class GamePanel extends JPanel {
                 }
             });
             moveTimer.start();  // Start the movement timer
-    
+
             currentLane = targetLane;  // Update the current lane after the transition
         }
     }
+
+
     
     
     
