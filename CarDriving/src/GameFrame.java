@@ -19,7 +19,7 @@ public class GameFrame extends JFrame {
         setLayout(new BorderLayout());
         setResizable(false); // Stops player from resizing the window
 
-        gamePanel = new GamePanel();
+        gamePanel = new GamePanel(scorePanel);
         add(gamePanel, BorderLayout.CENTER);
 
         scorePanel = new ScorePanel();

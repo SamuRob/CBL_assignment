@@ -35,6 +35,12 @@ public class ScorePanel extends JPanel {
         updateLabels();
     }
 
+    public void addMoney(int amount) {
+        money += amount;  // Add the given amount of money to the player's balance
+        updateLabels();  // Update the labels to reflect the new balance
+    }
+    
+
     // Method to increase the score after a successful delivery
     public void successfulDelivery() {
         int reward = random.nextInt(50) + 50;  // Random reward between 50 and 100

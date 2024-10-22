@@ -18,6 +18,7 @@ public class GamePanel extends JPanel {
 
     private boolean isImmune = false; //immunity to vehicle after leaving parking
 
+    private ScorePanel scorePanel;
 
     private boolean collisionDisabled = false;
 
@@ -48,10 +49,13 @@ public class GamePanel extends JPanel {
 
     private BufferedImage roadImage;
 
-    public GamePanel() {
+    public GamePanel(ScorePanel scorePanel) {
         setFocusable(true);
         requestFocusInWindow();
     
+        this.scorePanel = scorePanel;
+
+
         this.roadWidth = 800;
         this.roadHeight = 200;
         this.windowWidth = 800;
