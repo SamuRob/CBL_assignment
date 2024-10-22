@@ -18,10 +18,6 @@ public class ParkingSpot {
 
     private int distanceBeforeParking = 150;
 
-   // private int[] laneYposition;
-
-
-
     private boolean nextSpotLeft = true;
     private Rectangle parkingRegion;  // The parking region
 
@@ -57,50 +53,7 @@ public class ParkingSpot {
         parkingLanesY[2] = roadY + (2 * laneHeight);  // Lane 3 Y-position
         parkingLanesY[3] = roadY + (3 * laneHeight);  // Lane 4 Y-position
     }
-    
-    
 
-    
-    
-
-    // Generate parking spots in lanes
-   /*  public void generateParkingSpot() {
-        
-        
-        nextSpotLeft = false;  // Only generate on right side of da car
-        
-        int selection = random.nextInt(2) + 1; // choses 1 or 2
-
-        int yPos;
-        int xPos;
-
-
-        if (selection == 1) {
-
-            GamePanel gamePanel = new GamePanel();
-            int maxLane = gamePanel.getMaxLane();
-            yPos = 200 / maxLane + 100;
-            xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
-            // Create the parking spot in the selected lane
-             parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
-
-            // Update the parking region to allow vehicle to move into it
-            parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
-        }
-        else{ // BottomLane parking
-
-            GamePanel gamePanel = new GamePanel();
-            int maxLane = gamePanel.getMaxLane();
-            yPos = 200 / maxLane + 350;
-            xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
-            // Create the parking spot in the selected lane
-             parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
-
-            // Update the parking region to allow vehicle to move into it
-            parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
-        }
-        
-    }*/
 
     // Move parking spots with the screen
     public void moveParkingSpots(int scrollSpeed) {
@@ -141,66 +94,9 @@ public class ParkingSpot {
         return false;  // No parking spot approaching
     }
 
-    /*public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight){
-        for (Rectangle spot : parkingSpots) {
-            if (new Rectangle(truckX, truckY, truckWidth, truckHeight).intersects(spot)) {
-                playerParked = true;
-                return true;  // Player is parked
-            }
-        }
-        playerParked = false;  // Player is no longer parked
-        return false;
-        }
-    
-        public void resetParkingStatus(){
-            playerParked = false;
-        }
-*/
     public void resetParkingStatus() {
         playerParked = false;  // Reset the parking status
     }
-
-
-   /*  public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
-        for (Rectangle spot : parkingSpots) {
-            // Use contains to ensure the truck is fully within the parking spot
-            if (spot.contains(truckX, truckY, truckWidth, truckHeight)) {
-                playerParked = true;
-                return true;  // Player is fully parked inside the spot
-            }
-        }
-        playerParked = false;  // Player is no longer parked
-        return false;
-    }
-        */
-
-       /*(int truckX, int truckY, int truckWidth, int truckHeight) {
-            for (Rectangle spot : parkingSpots) {
-                Rectangle parkingBuffer = new Rectangle(
-                    spot.x,
-                    spot.y,
-                    spot.width,
-                    spot.height
-                );
-                if (parkingBuffer.contains(truckX, truckY, truckWidth, truckHeight)) {
-                    playerParked = true;
-                    return true;
-                }
-            }
-            playerParked = false;
-            return false;
-        }*/
-        /*(int truckX, int truckY, int truckWidth, int truckHeight) {
-            for (Rectangle spot : parkingSpots) {
-                // Check if the truck is completely inside the parking spot
-                if (spot.contains(truckX, truckY-100) && spot.contains(truckX + truckWidth, truckY + truckHeight-100)) {
-                    playerParked = true;
-                    return true;
-                }
-            }
-            playerParked = false;
-            return false;
-        }*/
 
         public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
             for (Rectangle spot : parkingSpots) {
@@ -213,30 +109,6 @@ public class ParkingSpot {
             playerParked = false;
             return false;  // The player is not parked
         }
-        
-        
-        
-        
-        
-
-       /*  public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
-            for (Rectangle spot : parkingSpots) {
-                // Add a small buffer (e.g., 10 pixels) to allow lenient parking
-                Rectangle parkingBuffer = new Rectangle(
-                    spot.x - 10, 
-                    spot.y - 10, 
-                    spot.width + 20, 
-                    spot.height + 20
-                );
-                if (parkingBuffer.contains(truckX, truckY, truckWidth, truckHeight)) {
-                    playerParked = true;
-                    return true;  // Player is fully parked inside the spot
-                }
-            }
-            playerParked = false;  // Player is no longer parked
-            return false;
-        }
-        */
 
 
 // Method to check if the truck can enter the parking region
@@ -249,23 +121,6 @@ public class ParkingSpot {
         return false;
     }
 
-/* 
-    // Check if the truck can enter the parking region
-    public boolean canEnterParkingRegion(int truckX, int truckY, int truckWidth, int truckHeight) {
-        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth, truckHeight);
-        return truckRect.intersects(parkingRegion);
-    }
-
-        // Check if the vehicle is successfully parked within a parking spot
-        public boolean checkParking(int truckX, int truckY, int truckWidth, int truckHeight) {
-            for (Rectangle spot : parkingSpots) {
-                if (new Rectangle(truckX, truckY, truckWidth, truckHeight).intersects(spot)) {
-                    return true;  // Truck is parked correctly
-                }
-            }
-            return false;
-        }
-*/
 
 public boolean isSpotApproaching(int truckX) {
     for (Rectangle spot : parkingSpots) {
@@ -277,21 +132,7 @@ public boolean isSpotApproaching(int truckX) {
     }
     return false;
 }
-/*public void generateParkingSpot() {
-    nextSpotLeft = false;  // You can set this based on your game's requirement (left/right parking)
 
-    // Only choose between lane 1 (index 0) and lane 4 (index 3)
-    int laneIndex = random.nextBoolean() ? 0 : 3;  // Randomly choose either lane 1 or lane 4
-
-    // Use the `parkingLanesY` array to get the correct Y position for lane 1 or lane 4
-    int yPos = parkingLanesY[laneIndex];  // Get the Y position based on the lane
-
-    int xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
-    parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
-
-    // Update the parking region to allow the vehicle to move into it
-    parkingRegion.setBounds(xPos - 20, yPos - 20, spotWidth + 40, spotHeight + 40);
-}*/
 public void removeCurrentSpot() {
     if (!parkingSpots.isEmpty()) {
         parkingSpots.remove(0);  // Assuming the first parking spot is the active one
