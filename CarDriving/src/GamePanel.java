@@ -174,44 +174,45 @@ public class GamePanel extends JPanel {
         gameState = GAME_SCREEN; // Switch to game screen state
         GameRunning = true; // Set the game as running
         countdown = 3; // Start countdown from 3
-
+    
         gameTimer.start(); // Start the game timer
         speedIncreaseTimer.start(); // Start the speed increase timer
-
+    
         // Set the car to start in the middle lane (lane 3)
         currentLane = 3;
-
+    
         // Update truckY based on currentLane
         truckY = roadY + (laneHeight * (currentLane - 1)) + (laneHeight - carHeight) / 2;
         truckX = windowWidth / 2 - carWidth / 2;
-
+    
         remove(startButton); // Remove the Start button after the game starts
         startButton.setFocusable(false); // Prevent start button from focus
         repaint(); // Repaint the screen without the Start screen
-
+    
         // Timer for the countdown
         Timer countdownTimer = new Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 countdown--; // Decrease countdown each second
                 repaint(); // Repaint to show the updated countdown
-
+    
                 if (countdown <= 0) {
                     ((Timer) e.getSource()).stop(); // Stop the countdown timer
                     GameRunning = true; // Set the game as running
                     gameTimer.start(); // Start the game timer and the scrolling effect
                     requestFocusInWindow(); // Ensure focus is on game panel after game begins
-
-                    // The holy grail: ensures the game frame knows the game has started
+    
+                    // Notify the game frame that the game has started
                     ((GameFrame) SwingUtilities.getWindowAncestor(GamePanel.this)).setGameStarted(true);
-
+    
                     System.out.println("Game started!");
                 }
             }
         });
-
+    
         countdownTimer.start(); // Start the countdown timer
     }
+    
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -307,17 +308,25 @@ public class GamePanel extends JPanel {
 
     private void restartGame() {
         // Reset game variables
-        truckX = windowWidth / 2 - 40;
-        truckY = (windowHeight / 2) + 50;
-        currentLane = 1;
+        truckX = windowWidth / 2 - carWidth / 2;
+        truckY = (windowHeight / 2) - carHeight / 2;
+        currentLane = 3; // Reset to middle lane
         laneMoved = 0;
-        obstacles = new Obstacles(roadWidth, roadX,
-                roadY, roadHeight / maxLane, maxLane, scrollSpeed, this);
-
-        GameRunning = true;
-        gameTimer.start();
-        requestFocusInWindow(); // Ensure the panel has focus
+        scrollSpeed = 5; // Reset the scroll speed
+        level = 1; // Reset the level
+    
+        obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed, this);
+    
+        // Reset game state to START_SCREEN
+        gameState = START_SCREEN;
+        GameRunning = false;
+    
+        // Show the start button again
+        add(startButton);
+        startButton.setFocusable(true);
+        repaint(); // Repaint the screen to reflect the changes
     }
+    
 
     // Draw the Start screen
     private void drawStartScreen(Graphics g) {
@@ -366,6 +375,23 @@ public class GamePanel extends JPanel {
             // case no image
             g.setColor(Color.RED);
             g.fillRect(truckX, truckY, carWidth, carHeight);
+        }
+    }
+    
+    public void handleBombCollision() {
+        System.out.println("Hit a bomb! Game Over.");
+        GameRunning = false;
+        gameTimer.stop(); // Stop the game timer
+        speedIncreaseTimer.stop(); // Stop the speed increase timer
+    
+        int response = JOptionPane.showConfirmDialog(this, 
+                "Game Over! You hit a bomb. Do you want to play again?",
+                     "Game Over", JOptionPane.YES_NO_OPTION);
+    
+        if (response == JOptionPane.YES_OPTION) {
+            restartGame(); // Take them to the start screen
+        } else {
+            System.exit(0); // Exit the game if they choose "No"
         }
     }
     
