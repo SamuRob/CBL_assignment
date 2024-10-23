@@ -19,11 +19,12 @@ public class GameFrame extends JFrame {
         setLayout(new BorderLayout());
         setResizable(false); // Stops player from resizing the window
 
+        scorePanel = new ScorePanel();
+        add(scorePanel, BorderLayout.NORTH);
+
         gamePanel = new GamePanel(scorePanel);
         add(gamePanel, BorderLayout.CENTER);
 
-        scorePanel = new ScorePanel();
-        add(scorePanel, BorderLayout.NORTH);
 
         // Ensure the game panel gets focus after making the window visible
         SwingUtilities.invokeLater(() -> gamePanel.requestFocusInWindow());

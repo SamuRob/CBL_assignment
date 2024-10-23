@@ -11,20 +11,21 @@ public class ScorePanel extends JPanel {
     private JLabel scoreLabel;
     private JLabel highScoreLabel;
     private Random random;
+    private JLabel levelLabel;
 
     public ScorePanel() {
         setLayout(new FlowLayout(FlowLayout.RIGHT));  // Align components to the right
-
+    
         moneyLabel = new JLabel("Money: $0");
         scoreLabel = new JLabel("Score: 0");
         highScoreLabel = new JLabel("High Score: 0");
-
+        levelLabel = new JLabel("Level: 1");  // Initial level display
+    
         add(scoreLabel);
         add(moneyLabel);
         add(highScoreLabel);
-
-        random = new Random();
-        
+        add(levelLabel);  // Add the level label to the panel
+    
         setPreferredSize(new Dimension(800, 50));  // Set the preferred size for the panel
     }
 
@@ -35,10 +36,13 @@ public class ScorePanel extends JPanel {
         updateLabels();
     }
 
-    public void addMoney(int amount) {
-        money += amount;  // Add the given amount of money to the player's balance
-        updateLabels();  // Update the labels to reflect the new balance
+    public void addRandomMoney() {
+        Random random = new Random();
+        int reward = random.nextInt(41) + 10;  // Random value between 10 and 50
+        money += reward;
+        updateLabels();
     }
+    
     
 
     // Method to increase the score after a successful delivery
@@ -67,5 +71,10 @@ public class ScorePanel extends JPanel {
         moneyLabel.setText("Money: $" + money);
         scoreLabel.setText("Score: " + score);
         highScoreLabel.setText("High Score: " + highScore);
+    }
+
+    // Add a method to update the level display
+    public void updateLevel(int level) {
+        levelLabel.setText("Level: " + level);  // Update the level label
     }
 }
