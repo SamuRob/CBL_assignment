@@ -49,11 +49,13 @@ public class GamePanel extends JPanel {
 
     private static final int START_SCREEN = 0;
     private static final int GAME_SCREEN = 1;
+    private static final int INSTRUCTION_SCREEN = 2;
     private int gameState = START_SCREEN;
 
     private int laneMoved = 0; // Track how much road scrolled
 
     private JButton startButton;
+    private JButton instructionButton;
 
     private BufferedImage roadImage;
     private BufferedImage carImage;
@@ -61,6 +63,9 @@ public class GamePanel extends JPanel {
 
     public GamePanel(ScorePanel scorePanel) {
        // this.scorePanel = scorePanel;
+
+
+        setLayout(null);
 
         setFocusable(true);
         requestFocusInWindow();
@@ -87,6 +92,11 @@ public class GamePanel extends JPanel {
         startButton.addActionListener(e -> startGame()); // Action listener for button
         setLayout(null); // Set layout to null for absolute positioning
         add(startButton); // Add start button to the panel
+
+        instructionButton = new JButton("Instructions");
+        instructionButton.setBounds(windowWidth / 2 - 100, windowHeight / 2 + 60, 200, 50);
+        instructionButton.addActionListener(e -> showInstructions());
+        add(instructionButton);
 
         setFocusable(true);
         requestFocusInWindow();
@@ -127,6 +137,23 @@ public class GamePanel extends JPanel {
             System.out.println("Level increased: " + level + " | Scroll Speed: " + scrollSpeed);
         });
     }
+    private void showInstructions() {
+        gameState = INSTRUCTION_SCREEN; // Switch to the instruction screen
+    
+        // Safely remove the start and instruction buttons if they exist
+        if (startButton.getParent() != null) {
+            remove(startButton); // Remove the Start button
+        }
+        if (instructionButton.getParent() != null) {
+            remove(instructionButton); // Remove the Instructions button
+        }
+    
+        repaint(); // Repaint to show the new screen
+    }
+    
+    
+    
+
 
     public void handleBananaCollision() {
         System.out.println("Hit a banana! Sliding to a neighboring lane...");
@@ -174,20 +201,24 @@ public class GamePanel extends JPanel {
         gameState = GAME_SCREEN; // Switch to game screen state
         GameRunning = true; // Set the game as running
         countdown = 3; // Start countdown from 3
-    
+        
         gameTimer.start(); // Start the game timer
         speedIncreaseTimer.start(); // Start the speed increase timer
-    
+        
         // Set the car to start in the middle lane (lane 3)
         currentLane = 3;
     
         // Update truckY based on currentLane
         truckY = roadY + (laneHeight * (currentLane - 1)) + (laneHeight - carHeight) / 2;
         truckX = windowWidth / 2 - carWidth / 2;
-    
+        
         remove(startButton); // Remove the Start button after the game starts
+        remove(instructionButton); // Remove the Instructions button after the game starts
+        
         startButton.setFocusable(false); // Prevent start button from focus
-        repaint(); // Repaint the screen without the Start screen
+        instructionButton.setFocusable(false); // Prevent instruction button from focus
+    
+        repaint(); // Repaint the screen without the Start and Instructions buttons
     
         // Timer for the countdown
         Timer countdownTimer = new Timer(1000, new ActionListener() {
@@ -204,7 +235,6 @@ public class GamePanel extends JPanel {
     
                     // Notify the game frame that the game has started
                     ((GameFrame) SwingUtilities.getWindowAncestor(GamePanel.this)).setGameStarted(true);
-    
                     System.out.println("Game started!");
                 }
             }
@@ -213,17 +243,18 @@ public class GamePanel extends JPanel {
         countdownTimer.start(); // Start the countdown timer
     }
     
+    
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
     
-        // Draw the background image
+        // Draw the background image if it exists
         if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, -50, windowWidth, windowHeight, null); // Draw background to cover entire window
+            g.drawImage(backgroundImage, 0, -50, windowWidth, windowHeight, null); // Draw background to cover the entire window
         }
     
-        // Draw other game elements
+        // Handle different game states
         if (gameState == START_SCREEN) {
             drawStartScreen(g); // Draw the start screen
         } else if (gameState == GAME_SCREEN) {
@@ -233,11 +264,43 @@ public class GamePanel extends JPanel {
             drawVehicle(g); // Draw the vehicle (car)
             drawAnticipationArrow(g); // Draw anticipation arrow
     
-            // Draw the countdown on top of the road and other elements
+            // Draw the countdown on top of the road and other elements, if applicable
             if (countdown > 0) {
-                drawCountdown(g); // Draw the countdown if it's still ongoing
+                drawCountdown(g); // Draw the countdown
             }
+        } else if (gameState == INSTRUCTION_SCREEN) {
+            drawInstructionScreen(g); // Draw the instruction screen
         }
+    }
+    
+    private void drawInstructionScreen(Graphics g) {
+        g.setColor(Color.LIGHT_GRAY);
+        g.fillRect(0, 0, windowWidth, windowHeight);
+
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 36));
+        g.drawString("Instructions", windowWidth / 2 - 100, 100);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        g.drawString("Use the arrow keys to move the vehicle.", 100, 200);
+        g.drawString("Avoid obstacles and park in designated spots.", 100, 240);
+        g.drawString("Press UP or DOWN to change lanes.", 100, 280);
+        g.drawString("Press SPACE to pause the game.", 100, 320);
+    
+        JButton backButton = new JButton("Back to Start");
+        backButton.setBounds(windowWidth / 2 - 100, windowHeight - 150, 200, 50); 
+        backButton.addActionListener(e -> backToStart()); // return to home screen
+        setLayout(null); 
+        add(backButton); 
+    }
+
+
+    private void backToStart() {
+        gameState = START_SCREEN; // Switch back to the start screen
+        removeAll();
+        add(startButton); 
+        add(instructionButton); 
+        repaint(); // Repaint to show the start screen
     }
     
 
@@ -315,17 +378,28 @@ public class GamePanel extends JPanel {
         scrollSpeed = 5; // Reset the scroll speed
         level = 1; // Reset the level
     
+        // Recreate obstacles and parking spots for a fresh start
         obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed, this);
     
         // Reset game state to START_SCREEN
         gameState = START_SCREEN;
         GameRunning = false;
     
-        // Show the start button again
+        // Remove any game-related components (if necessary)
+        removeAll(); 
+    
+        // Add the Start button and Instructions button back to the panel
         add(startButton);
+        add(instructionButton);
+    
+        // Make sure the buttons are focusable again
         startButton.setFocusable(true);
-        repaint(); // Repaint the screen to reflect the changes
+        instructionButton.setFocusable(true);
+    
+        // Repaint the panel to reflect the changes
+        repaint();
     }
+    
     
 
     // Draw the Start screen
