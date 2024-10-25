@@ -22,6 +22,8 @@ public class GamePanel extends JPanel {
     private int scrollSpeed = 5;
     private int level = 1;
 
+
+
     private boolean isMovingRight;
     private boolean isMovingLeft;
     private boolean isSliding = false;
@@ -70,6 +72,11 @@ public class GamePanel extends JPanel {
     private BufferedImage roadImage;
     private BufferedImage carImage;
     private BufferedImage backgroundImage;
+    private BufferedImage streetImage;
+    
+    private int streetMoved;
+    private int buildingX;
+
     private JLabel gifLabel;
 
     public GamePanel(ScorePanel scorePanel) {
@@ -165,6 +172,14 @@ public class GamePanel extends JPanel {
             backgroundImage = ImageIO.read(getClass().getResource("/BackgroundImage.png"));
         } catch(IOException e) {
             e.printStackTrace();
+        }
+
+        try {
+            streetImage = ImageIO.read(getClass().getResource("/HousesBackground.png"));
+            //buildingX = windowWidth;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Building image not found.");
         }
 
         ImageIcon gifIcon = new ImageIcon(getClass().getResource("/monkey.gif"));
@@ -319,6 +334,20 @@ public class GamePanel extends JPanel {
             g.drawImage(backgroundImage, 0, -50, windowWidth, 
                 windowHeight, null); // Draw background to cover the entire window
         }
+
+        if (streetImage != null) {
+            int buildingY = roadY - streetImage.getHeight() ; // Position above the road
+    
+            // Draw buildings in a row to fill the entire width
+            for (int x = buildingX; x < windowWidth; x += streetImage.getWidth()) {
+                g.drawImage(streetImage, x, buildingY, null);
+            }
+    
+            // Draw an additional building image before the first if necessary (for seamless scrolling)
+            if (buildingX > 0) {
+                g.drawImage(streetImage, buildingX - streetImage.getWidth(), buildingY, null);
+            }
+        }
     
         for(Tree tree : trees) {
             tree.draw(g);
@@ -403,6 +432,11 @@ public class GamePanel extends JPanel {
             return; // If the game is paused, do nothing
         }
     
+        streetMoved += scrollSpeed;
+        if (streetMoved >= streetImage.getWidth()) {
+            streetMoved = 0; // Reset the scroll offset when one image width has been scrolled
+        }
+
         // Update monkey position along with the scroll
         monkeyX -= scrollSpeed;
     
@@ -454,6 +488,11 @@ public class GamePanel extends JPanel {
         laneMoved += scrollSpeed;
         if (laneMoved >= 2 * 30) {
             laneMoved = 0;
+        }
+
+        streetMoved += scrollSpeed;
+        if (streetMoved > windowWidth) {
+            streetMoved -= windowWidth;
         }
     
         if (isMovingLeft && truckX > roadX) {
@@ -593,6 +632,22 @@ public class GamePanel extends JPanel {
             g.fillRect(truckX, truckY, carWidth, carHeight);
         }
     }
+
+    private void drawStreet(Graphics g) {
+        // g.setColor(new Color(137,200,58));
+        // g.fillRect(0, 0, windowWidth, windowHeight);
+        
+        if (streetImage != null) {
+            g.drawImage(streetImage, -streetMoved, roadY - 200, windowWidth, 200, null);
+            if (streetMoved > 0) {
+                g.drawImage(streetImage, windowWidth - streetMoved, roadY - 200, windowWidth, 200, null);
+            }
+        }
+    }
+    
+    
+    
+    
     
     public void handleBombCollision() {
         System.out.println("Hit a bomb! Game Over.");
