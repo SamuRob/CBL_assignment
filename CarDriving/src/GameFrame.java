@@ -34,10 +34,28 @@ public class GameFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (gameStarted) {
-                    gamePanel.moveVehicle(e.getKeyCode());
+                    if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
+                        gamePanel.moveVehicle(e.getKeyCode());
+                    }
+                    if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                        gamePanel.setMovingLeft(true);
+                    }
+                    if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                        gamePanel.setMovingRight(true);
+                    }
                 }
-                // Ensure focus is maintained after a key press
-                gamePanel.requestFocusInWindow();
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (gameStarted) {
+                    if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                        gamePanel.setMovingLeft(false);
+                    }
+                    if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                        gamePanel.setMovingRight(false);
+                    }
+                }
             }
         });
 

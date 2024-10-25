@@ -19,6 +19,9 @@ public class GamePanel extends JPanel {
     private int scrollSpeed = 5;
     private int level = 1;
 
+    private boolean isMovingRight;
+    private boolean isMovingLeft;
+
     private boolean GameRunning = false;
     private int windowHeight, windowWidth;
     private int countdown = 3;
@@ -60,6 +63,7 @@ public class GamePanel extends JPanel {
     private BufferedImage roadImage;
     private BufferedImage carImage;
     private BufferedImage backgroundImage;
+    private JLabel gifLabel;
 
     public GamePanel(ScorePanel scorePanel) {
        // this.scorePanel = scorePanel;
@@ -76,7 +80,7 @@ public class GamePanel extends JPanel {
         this.windowHeight = 600;
 
         this.laneHeight = roadHeight / maxLane;
-        this.carHeight = (int) (laneHeight * 0.8);
+        this.carHeight = laneHeight;
         this.carWidth = carHeight * 2;
 
         this.roadX = (windowWidth - roadWidth) / 2;
@@ -89,14 +93,53 @@ public class GamePanel extends JPanel {
 
         startButton = new JButton("Start Game");
         startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
+        
+        startButton.setBackground(Color.GREEN);
+        startButton.setFocusPainted(false); // Removes the focus border
+        startButton.setOpaque(true);
+        startButton.setBorderPainted(false);
+
+        // Add hover effect using a MouseListener
+        startButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                startButton.setBackground(new Color(0,255,255)); // Change background color when hovered
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                startButton.setBackground(Color.GREEN); // Reset background color when not hovered
+            }
+        });
+
         startButton.addActionListener(e -> startGame()); // Action listener for button
         setLayout(null); // Set layout to null for absolute positioning
         add(startButton); // Add start button to the panel
 
         instructionButton = new JButton("Instructions");
         instructionButton.setBounds(windowWidth / 2 - 100, windowHeight / 2 + 60, 200, 50);
+       
+        instructionButton.setBackground(Color.LIGHT_GRAY);
+        instructionButton.setFocusPainted(false); // Removes the focus border
+        instructionButton.setOpaque(true);
+        instructionButton.setBorderPainted(false);
+
+        // Add hover effect using a MouseListener
+        instructionButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                instructionButton.setBackground(Color.GRAY); // Change background color when hovered
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                instructionButton.setBackground(Color.LIGHT_GRAY); // Reset background color when not hovered
+            }
+        });
+
         instructionButton.addActionListener(e -> showInstructions());
         add(instructionButton);
+
 
         setFocusable(true);
         requestFocusInWindow();
@@ -117,6 +160,13 @@ public class GamePanel extends JPanel {
             e.printStackTrace();
         }
 
+        ImageIcon gifIcon = new ImageIcon(getClass().getResource("/monkey.gif"));
+        gifLabel = new JLabel(gifIcon);
+
+        gifLabel.setBounds(100, 100, gifIcon.getIconWidth(), gifIcon.getIconHeight());
+
+        add(gifLabel);
+
         // Timer for scrolling effect
         gameTimer = new Timer(30, e -> {
             if (GameRunning) {
@@ -131,6 +181,7 @@ public class GamePanel extends JPanel {
         // Initialize the speed increase timer (e.g., every 30 seconds)
         speedIncreaseTimer = new Timer(10000, e -> {
             scrollSpeed++; // Increase scroll speed
+
             level++; // Increase the level
             scorePanel.updateLevel(level); // Update the level display
             obstacles.setScrollSpeed(scrollSpeed);
@@ -178,20 +229,19 @@ public class GamePanel extends JPanel {
 
     private void drawRoadImage() {
         Graphics g = roadImage.getGraphics();
-        g.setColor(Color.GRAY);
-        g.fillRect(0, 0, roadWidth, roadHeight);
-
+    
         g.setColor(Color.WHITE);
         int laneHeight = roadHeight / maxLane;
-        for (int i = 1; i < maxLane; i++) {
+        int lineLength = 30;
+        for (int i = 2; i < maxLane - 1; i++) {
             int laneY = i * laneHeight;
-            for (int x = 0; x <= roadWidth; x += 40) {
-                g.drawLine(x, laneY, x + 20, laneY); // Draw dashes
+            for (int x = 0; x <= roadWidth; x += 2 * lineLength) {
+                g.drawLine(x, laneY, x + lineLength, laneY);  // Draw dashes
             }
         }
-        g.dispose(); // Clean up resources
+        g.dispose();  // Clean up resources
     }
-
+    
     public int getMaxLane() {
         return maxLane;
     }
@@ -251,7 +301,8 @@ public class GamePanel extends JPanel {
     
         // Draw the background image if it exists
         if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, -50, windowWidth, windowHeight, null); // Draw background to cover the entire window
+            g.drawImage(backgroundImage, 0, -50, windowWidth, 
+                windowHeight, null); // Draw background to cover the entire window
         }
     
         // Handle different game states
@@ -262,7 +313,9 @@ public class GamePanel extends JPanel {
             parkingSpot.drawParkingSpots(g); // Draw parking lanes and spots
             obstacles.drawObstacles(g); // Draw obstacles
             drawVehicle(g); // Draw the vehicle (car)
-            drawAnticipationArrow(g); // Draw anticipation arrow
+            
+           // Rectangle spot = parkingSpot.getNextParkingSpot();
+           // drawAnticipationArrow(g); // Draw anticipation arrow
     
             // Draw the countdown on top of the road and other elements, if applicable
             if (countdown > 0) {
@@ -308,21 +361,22 @@ public class GamePanel extends JPanel {
         g.setColor(Color.BLACK); // Set the text color
         g.setFont(new Font("Arial", Font.BOLD, 72)); // Set a large font for the countdown
 
-        String countdownText = countdown > 0 ? String.valueOf(countdown) : "GO!"; // Show numbers or "GO!"
-        int textWidth = g.getFontMetrics().stringWidth(countdownText); // Measure the width of the text
+        String countdownText = countdown > 0 ? String.valueOf(countdown) : "GO!"; 
+        int textWidth = g.getFontMetrics().stringWidth(countdownText); 
         int textX = (windowWidth - textWidth) / 2; // Center the text horizontally
         int textY = windowHeight / 2; // Center the text vertically
 
         g.drawString(countdownText, textX, textY); // Draw the countdown text
     }
 
-    private void drawAnticipationArrow(Graphics g) {
+    private void drawAnticipationArrow(Graphics g, Rectangle parkingSpot) {
         g.setColor(Color.RED);
-        int arrowX = parkingSpot.isNextSpotLeft() ? roadX - 50 : roadX + roadWidth + 10;
-        int arrowY = roadY - 30;
+        int arrowX = parkingSpot.x; // Adjust as needed
+        int arrowY = parkingSpot.y - 30;
         g.fillPolygon(new int[]{arrowX, arrowX + 20, arrowX},
-                new int[]{arrowY, arrowY + 10, arrowY + 20}, 3); // Triangle shape for arrow
+                      new int[]{arrowY, arrowY + 10, arrowY + 20}, 3); // Triangle shape for arrow
     }
+    
 
     private void scrollScreen() {
         if (gamePaused) {
@@ -330,22 +384,40 @@ public class GamePanel extends JPanel {
         }
 
         // Move parking spots and scroll screen
-        parkingSpotSpawnCount++;
-        if (parkingSpotSpawnCount >= 500) {
+        parkingSpotSpawnCount += scrollSpeed;
+        if (parkingSpotSpawnCount >= 2300) {
             parkingSpot.generateParkingSpot();
             parkingSpotSpawnCount = 0;
         }
         parkingSpot.moveParkingSpots(scrollSpeed);
 
         // Lane scrolling logic
-        laneMoved = scrollSpeed + laneMoved;
-        if (laneMoved >= roadHeight / maxLane) {
+        laneMoved += scrollSpeed;
+        if (laneMoved >= 2 * 30) {
             laneMoved = 0;
         }
 
+        // move truck left if currently holding down left arrow
+        if (isMovingLeft && truckX>roadX) {
+            truckX -= 7;
+        }
+        // move truck right if currently holding down right arrow
+        if (isMovingRight && (truckX+60)<roadWidth) {
+            truckX += 7;
+        }
+
+        if (isPlayerInParkingLane(truckY) && 
+        !parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed) && 
+        !parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
+        
+        System.out.println("Player is in a parking lane but not near a parking spot. Moving back to a middle lane.");
+        moveToMiddleLane();
+    }
+    
+
         // Spawn and move obstacles
-        obstacleSpawnCount++;
-        if (obstacleSpawnCount >= 100) {
+        obstacleSpawnCount += scrollSpeed;
+        if (obstacleSpawnCount >= 500) {
             obstacles.generateObstacle();
             obstacleSpawnCount = 0;
         }
@@ -368,6 +440,27 @@ public class GamePanel extends JPanel {
 
         repaint(); // Continue scrolling and repaint the screen
     }
+
+    private boolean isPlayerInParkingLane(int truckY) {
+        // Get the lane Y positions
+        int lane1Y = roadY; // Lane 1
+        int lane5Y = roadY + 4 * laneHeight; // Lane 5
+        
+        // Check if the truck is in either of the parking lanes (lane 1 or lane 5)
+        return (truckY == lane1Y || truckY == lane5Y);
+    }
+    
+
+    private void moveToMiddleLane() {
+        Random random = new Random();
+        int randomMiddleLane = random.nextInt(3) + 2;  // Random lane 2, 3, or 4
+    
+        // Update the player's Y position to the middle lane
+        truckY = roadY + (randomMiddleLane - 1) * laneHeight;
+    
+        System.out.println("Player moved to lane " + randomMiddleLane);
+    }
+    
 
     private void restartGame() {
         // Reset game variables
@@ -416,7 +509,7 @@ public class GamePanel extends JPanel {
     // Draw the Road
     private void drawRoad(Graphics g) {
         int laneHeight = roadHeight / maxLane;
-
+        
         // Draw lanes 1 to 5
         for (int i = 1; i <= maxLane; i++) {
             int laneY = roadY + (i - 1) * laneHeight;
@@ -430,16 +523,10 @@ public class GamePanel extends JPanel {
             else {
                 g.setColor(Color.DARK_GRAY);
                 g.fillRect(roadX, laneY, roadWidth, laneHeight); // Fill the lane with dark grey
-
-                // Draw dashed lines between lanes 2-3 and 3-4
-                if (i == 2 || i == 3) { // Only between lanes 2-3 and 3-4
-                    g.setColor(Color.WHITE);
-                    for (int x = 0; x <= roadWidth; x += 40) {
-                        g.drawLine(x, laneY + laneHeight, x + 20, laneY + laneHeight); // Dashed line
-                    }
-                }
             }
         }
+        
+        g.drawImage(roadImage, roadX - laneMoved, roadY, this); // Draw lines (lane separators)
     }
 
     private void drawVehicle(Graphics g) {
@@ -469,6 +556,13 @@ public class GamePanel extends JPanel {
         }
     }
     
+    public void setMovingLeft(boolean isMovingLeft) {
+        this.isMovingLeft = isMovingLeft;
+    }
+    
+    public void setMovingRight(boolean isMovingRight) {
+        this.isMovingRight = isMovingRight;
+    }
 
     public void moveVehicle(int keyCode) {
         if (gameState != GAME_SCREEN) {
@@ -547,24 +641,26 @@ public class GamePanel extends JPanel {
 
     private void moveToLane(int targetLane) {
         int laneHeight = roadHeight / maxLane;
-
+    
         // Calculate the Y position for the target lane
-        final int targetY = roadY + (laneHeight * (targetLane - 1));
-
-        // Smooth transition to the target lane
+        final int targetY = roadY + (laneHeight * (targetLane - 1)) + (laneHeight - carHeight) / 2;
+    
+        // Ensure smooth transition but snap into place once close to the target
         Timer moveTimer = new Timer(10, e -> {
             if (truckY < targetY) {
-                truckY = Math.min(truckY + 5, targetY);  // Move truck downwards
+                truckY = Math.min(truckY + 10, targetY);  // Move truck downwards
             } else if (truckY > targetY) {
-                truckY = Math.max(truckY - 5, targetY);  // Move truck upwards
+                truckY = Math.max(truckY - 10, targetY);  // Move truck upwards
             }
             repaint();  // Repaint the panel to reflect the updated position
-
+    
+            // Once the truck is aligned with the lane, stop the timer
             if (truckY == targetY) {
                 ((Timer) e.getSource()).stop();  // Stop the timer once the target position is reached
-                currentLane = targetLane;  // Update current lane
+                currentLane = targetLane;  // Update the current lane after reaching target
             }
         });
         moveTimer.start();  // Start the movement timer
     }
+    
 }
