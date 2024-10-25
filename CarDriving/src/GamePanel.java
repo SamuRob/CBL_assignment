@@ -21,6 +21,7 @@ public class GamePanel extends JPanel {
 
     private boolean isMovingRight;
     private boolean isMovingLeft;
+    private boolean isSliding = false;
 
     private boolean GameRunning = false;
     private int windowHeight, windowWidth;
@@ -202,11 +203,12 @@ public class GamePanel extends JPanel {
         repaint(); // Repaint to show the new screen
     }
     
-    
-    
-
-
     public void handleBananaCollision() {
+        // Avoid triggering the slide if already sliding
+        if (isSliding){
+            return;
+        } 
+    
         System.out.println("Hit a banana! Sliding to a neighboring lane...");
     
         int targetLane = currentLane;
@@ -222,9 +224,16 @@ public class GamePanel extends JPanel {
             targetLane = 3;  // If in lane 4, move to lane 3
         }
     
-        // Move the vehicle to the target lane
+        // Set sliding flag to true to prevent re-triggering the slide
+        isSliding = true;
         moveToLane(targetLane);
+    
+        // Reset the sliding flag after a short delay to allow for other collisions
+        Timer slideResetTimer = new Timer(500, e -> isSliding = false);
+        slideResetTimer.setRepeats(false); // Only run the timer once
+        slideResetTimer.start();
     }
+    
     
 
     private void drawRoadImage() {
