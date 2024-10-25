@@ -62,7 +62,8 @@ public class GamePanel extends JPanel {
     private static final int INSTRUCTION_SCREEN = 2;
     private int gameState = START_SCREEN;
 
-    private int laneMoved = 0; // Track how much road scrolled
+    private int laneMoved = 0; // Track how much road lines have scrolled
+    private int streetMoved = 0; // Track screen movement for street
 
     private JButton startButton;
     private JButton instructionButton;
@@ -70,6 +71,7 @@ public class GamePanel extends JPanel {
     private BufferedImage roadImage;
     private BufferedImage carImage;
     private BufferedImage backgroundImage;
+    private BufferedImage streetImage;
     private JLabel gifLabel;
 
     public GamePanel(ScorePanel scorePanel) {
@@ -167,12 +169,18 @@ public class GamePanel extends JPanel {
             e.printStackTrace();
         }
 
+        try{
+            streetImage = ImageIO.read(getClass().getResource("/HousesBackground.png"));
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+
         ImageIcon gifIcon = new ImageIcon(getClass().getResource("/monkey.gif"));
         gifLabel = new JLabel(gifIcon);
 
         gifLabel.setBounds(100, 100, gifIcon.getIconWidth(), gifIcon.getIconHeight());
 
-        add(gifLabel);
+        // add(gifLabel);
 
         // Timer for scrolling effect
         gameTimer = new javax.swing.Timer(30, e -> {
@@ -328,6 +336,7 @@ public class GamePanel extends JPanel {
         if (gameState == START_SCREEN) {
             drawStartScreen(g); // Draw the start screen
         } else if (gameState == GAME_SCREEN) {
+            drawStreet(g); // Draw houses background
             drawRoad(g); // Draw the road
             parkingSpot.drawParkingSpots(g); // Draw parking lanes and spots
             obstacles.drawObstacles(g); // Draw obstacles
@@ -452,8 +461,13 @@ public class GamePanel extends JPanel {
         parkingSpot.moveParkingSpots(scrollSpeed);
     
         laneMoved += scrollSpeed;
-        if (laneMoved >= 2 * 30) {
-            laneMoved = 0;
+        if (laneMoved > 2 * 30) {
+            laneMoved -= 2 * 30;
+        }
+
+        streetMoved += scrollSpeed;
+        if (streetMoved > windowWidth) {
+            streetMoved -= windowWidth;
         }
     
         if (isMovingLeft && truckX > roadX) {
@@ -464,12 +478,12 @@ public class GamePanel extends JPanel {
         }
     
         if (isPlayerInParkingLane(truckY) && 
-            !parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed) && 
-            !parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
-            
-            System.out.println("Player is in a parking lane but not near a parking spot. Moving back to a middle lane.");
-            moveToMiddleLane();
-        }
+        !parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed) && 
+        !parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
+        
+        System.out.println("Player is in a parking lane but not near a parking spot. Moving back to a middle lane.");
+        moveToMiddleLane();
+    }
     
         obstacleSpawnCount += scrollSpeed;
         if (obstacleSpawnCount >= 500) {
@@ -591,6 +605,18 @@ public class GamePanel extends JPanel {
             // case no image
             g.setColor(Color.RED);
             g.fillRect(truckX, truckY, carWidth, carHeight);
+        }
+    }
+
+    private void drawStreet(Graphics g) {
+        // g.setColor(new Color(137,200,58));
+        // g.fillRect(0, 0, windowWidth, windowHeight);
+        
+        if (streetImage != null) {
+            g.drawImage(streetImage, -streetMoved, roadY - 200, windowWidth, 200, null);
+            if (streetMoved > 0) {
+                g.drawImage(streetImage, windowWidth - streetMoved, roadY - 200, windowWidth, 200, null);
+            }
         }
     }
     
