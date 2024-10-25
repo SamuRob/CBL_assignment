@@ -2,14 +2,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.Random;
 import java.io.*;
 import javax.imageio.*;
+import java.util.*;
 
 public class GamePanel extends JPanel {
     private javax.swing.Timer gameTimer;
-    private Timer speedIncreaseTimer; // Timer to increase scroll speed
-    private Timer moveRightTimer; // Timer to handle smooth right movement
+    private javax.swing.Timer speedIncreaseTimer; // Timer to increase scroll speed
+    private javax.swing.Timer moveRightTimer; // Timer to handle smooth right movement
+
+    private ArrayList<Tree> trees = new ArrayList<>();
+    private Random random = new Random();
 
     private int roadWidth;
     private int roadHeight;
@@ -37,6 +40,9 @@ public class GamePanel extends JPanel {
     private int carWidth;
     private int carHeight;
     private int laneHeight;
+
+    private int monkeyX = 100;
+    private int monkeyY = 200;
 
     private Obstacles obstacles;
     private int obstacleSpawnCount = 0; // Control spawn rate
@@ -169,7 +175,7 @@ public class GamePanel extends JPanel {
         add(gifLabel);
 
         // Timer for scrolling effect
-        gameTimer = new Timer(30, e -> {
+        gameTimer = new javax.swing.Timer(30, e -> {
             if (GameRunning) {
                 scrollScreen();
                 repaint();
@@ -180,7 +186,7 @@ public class GamePanel extends JPanel {
         parkingSpot = new ParkingSpot(roadWidth, roadX, roadY, roadHeight / maxLane);
 
         // Initialize the speed increase timer (e.g., every 30 seconds)
-        speedIncreaseTimer = new Timer(10000, e -> {
+        speedIncreaseTimer = new javax.swing.Timer(10000, e -> {
             scrollSpeed++; // Increase scroll speed
 
             level++; // Increase the level
@@ -229,7 +235,7 @@ public class GamePanel extends JPanel {
         moveToLane(targetLane);
     
         // Reset the sliding flag after a short delay to allow for other collisions
-        Timer slideResetTimer = new Timer(500, e -> isSliding = false);
+        javax.swing.Timer slideResetTimer = new javax.swing.Timer(500, e -> isSliding = false);
         slideResetTimer.setRepeats(false); // Only run the timer once
         slideResetTimer.start();
     }
@@ -280,14 +286,14 @@ public class GamePanel extends JPanel {
         repaint(); // Repaint the screen without the Start and Instructions buttons
     
         // Timer for the countdown
-        Timer countdownTimer = new Timer(1000, new ActionListener() {
+        javax.swing.Timer countdownTimer = new javax.swing.Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 countdown--; // Decrease countdown each second
                 repaint(); // Repaint to show the updated countdown
     
                 if (countdown <= 0) {
-                    ((Timer) e.getSource()).stop(); // Stop the countdown timer
+                    ((javax.swing.Timer) e.getSource()).stop(); // Stop the countdown timer
                     GameRunning = true; // Set the game as running
                     gameTimer.start(); // Start the game timer and the scrolling effect
                     requestFocusInWindow(); // Ensure focus is on game panel after game begins
@@ -314,6 +320,10 @@ public class GamePanel extends JPanel {
                 windowHeight, null); // Draw background to cover the entire window
         }
     
+        for(Tree tree : trees) {
+            tree.draw(g);
+        }
+
         // Handle different game states
         if (gameState == START_SCREEN) {
             drawStartScreen(g); // Draw the start screen
@@ -386,69 +396,105 @@ public class GamePanel extends JPanel {
                       new int[]{arrowY, arrowY + 10, arrowY + 20}, 3); // Triangle shape for arrow
     }
     
-
+    
+    // In your scrollScreen method
     private void scrollScreen() {
         if (gamePaused) {
             return; // If the game is paused, do nothing
         }
-
-        // Move parking spots and scroll screen
+    
+        // Update monkey position along with the scroll
+        monkeyX -= scrollSpeed;
+    
+        // Define spawn regions for trees
+        int regionAboveTopLaneMinY = roadY - 100; // 100 pixels above the road
+        int regionAboveTopLaneRange = 50; // Vertical range for tree spawn above road
+    
+        int regionBelowBottomLaneMinY = roadY + (laneHeight * maxLane) - 30; // 50 pixels below the road
+        int regionBelowBottomLaneRange = 50; // Vertical range for tree spawn below road
+    
+        // Randomly decide if a tree should spawn in the above-top-lane region
+        if (random.nextInt(100) < 6) { // Adjust the probability to control spawn rate
+            int treeYAbove = regionAboveTopLaneMinY + random.nextInt(regionAboveTopLaneRange);
+            trees.add(new Tree(roadX - 80, treeYAbove)); // Left side of the road
+            trees.add(new Tree(roadX + roadWidth + 60, treeYAbove)); // Right side of the road
+        }
+    
+        // Randomly decide if a tree should spawn in the below-bottom-lane region
+        if (random.nextInt(100) < 10) { // Adjust the probability to control spawn rate
+            int treeYBelow = regionBelowBottomLaneMinY + random.nextInt(regionBelowBottomLaneRange);
+            trees.add(new Tree(roadX - 80, treeYBelow)); // Left side of the road
+            trees.add(new Tree(roadX + roadWidth + 60, treeYBelow)); // Right side of the road
+        }
+    
+        // Move each tree leftward to create scrolling effect
+        for (Tree tree : trees) {
+            tree.move(scrollSpeed);
+        }
+    
+        // Remove trees that have moved off-screen to the left
+        trees.removeIf(tree -> tree.getX() + tree.getWidth() < 0);
+    
+        // Reset monkey position when it goes off-screen
+        if (monkeyX + gifLabel.getWidth() < 0) {
+            monkeyX = windowWidth; // Reset to the right side of the screen
+        }
+    
+        // Update gifLabel position to reflect new monkeyX
+        gifLabel.setBounds(monkeyX, monkeyY, gifLabel.getWidth(), gifLabel.getHeight());
+    
+        // Remaining scroll logic here
         parkingSpotSpawnCount += scrollSpeed;
         if (parkingSpotSpawnCount >= 2300) {
             parkingSpot.generateParkingSpot();
             parkingSpotSpawnCount = 0;
         }
         parkingSpot.moveParkingSpots(scrollSpeed);
-
-        // Lane scrolling logic
+    
         laneMoved += scrollSpeed;
         if (laneMoved >= 2 * 30) {
             laneMoved = 0;
         }
-
-        // move truck left if currently holding down left arrow
-        if (isMovingLeft && truckX>roadX) {
+    
+        if (isMovingLeft && truckX > roadX) {
             truckX -= 7;
         }
-        // move truck right if currently holding down right arrow
-        if (isMovingRight && (truckX+60)<roadWidth) {
+        if (isMovingRight && (truckX + 60) < roadWidth) {
             truckX += 7;
         }
-
-        if (isPlayerInParkingLane(truckY) && 
-        !parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed) && 
-        !parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
-        
-        System.out.println("Player is in a parking lane but not near a parking spot. Moving back to a middle lane.");
-        moveToMiddleLane();
-    }
     
-
-        // Spawn and move obstacles
+        if (isPlayerInParkingLane(truckY) && 
+            !parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed) && 
+            !parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
+            
+            System.out.println("Player is in a parking lane but not near a parking spot. Moving back to a middle lane.");
+            moveToMiddleLane();
+        }
+    
         obstacleSpawnCount += scrollSpeed;
         if (obstacleSpawnCount >= 500) {
             obstacles.generateObstacle();
             obstacleSpawnCount = 0;
         }
         obstacles.moveObstacles();
-
-        // Check if the player is fully parked, and pause the game if true
+    
         if (parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
-            gamePaused = true; // Pause the game
-            gameTimer.stop(); // Stop the game timer to stop scrolling
+            gamePaused = true;
+            gameTimer.stop();
             System.out.println("Game paused. Player parked successfully.");
-            return; // Exit the method after pausing
+            return;
         }
-
-        // Check for collisions with obstacles
+    
         if (obstacles.checkCollision(truckX, truckY, carWidth, carHeight, isImmune)) {
             GameRunning = false;
             gameTimer.stop();
-            // Handle game over logic (e.g., restarting the game or ending it)
         }
-
-        repaint(); // Continue scrolling and repaint the screen
+    
+        repaint();
     }
+    
+    
+    
 
     private boolean isPlayerInParkingLane(int truckY) {
         // Get the lane Y positions
@@ -600,7 +646,7 @@ public class GamePanel extends JPanel {
                 System.out.println("Vehicle is immune for 1 second!");
     
                 // Timer to disable immunity after 1 second
-                Timer immunityTimer = new Timer(1000, new ActionListener() {
+                javax.swing.Timer immunityTimer = new javax.swing.Timer(1000, new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         isImmune = false;  // Disable immunity after 1 second
@@ -655,7 +701,7 @@ public class GamePanel extends JPanel {
         final int targetY = roadY + (laneHeight * (targetLane - 1)) + (laneHeight - carHeight) / 2;
     
         // Ensure smooth transition but snap into place once close to the target
-        Timer moveTimer = new Timer(10, e -> {
+        javax.swing.Timer moveTimer = new javax.swing.Timer(10, e -> {
             if (truckY < targetY) {
                 truckY = Math.min(truckY + 10, targetY);  // Move truck downwards
             } else if (truckY > targetY) {
@@ -665,7 +711,7 @@ public class GamePanel extends JPanel {
     
             // Once the truck is aligned with the lane, stop the timer
             if (truckY == targetY) {
-                ((Timer) e.getSource()).stop();  // Stop the timer once the target position is reached
+                ((javax.swing.Timer) e.getSource()).stop();  // Stop the timer once the target position is reached
                 currentLane = targetLane;  // Update the current lane after reaching target
             }
         });
