@@ -559,7 +559,7 @@ public class GamePanel extends JPanel {
             obstacles.generateObstacle();
             obstacleSpawnCount = 0;
         }
-        obstacles.moveObstacles();
+        obstacles.moveObstacles(truckX, truckY);
     
         if (parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
             gamePaused = true;
