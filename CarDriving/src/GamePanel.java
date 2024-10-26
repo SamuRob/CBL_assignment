@@ -697,7 +697,23 @@ public class GamePanel extends JPanel {
     
     
     
-    
+    // Add this method to GamePanel
+    public void handleCollision() {
+        gameTimer.stop();            // Stop the game timer
+        speedIncreaseTimer.stop();    // Stop the speed increase timer
+        
+        // Show a dialog to restart or exit
+        int response = JOptionPane.showConfirmDialog(this, 
+                "Game Over! You collided with an obstacle. Do you want to play again?", 
+                "Game Over", JOptionPane.YES_NO_OPTION);
+
+        if (response == JOptionPane.YES_OPTION) {
+            restartGame(); // Restart if the player chooses "Yes"
+        } else {
+            System.exit(0); // Exit if the player chooses "No"
+        }
+    }
+
     
     
     public void handleBombCollision() {

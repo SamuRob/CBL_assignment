@@ -8,23 +8,22 @@ import java.io.IOException;
 public class Obstacles {
     private ArrayList<Rectangle> obstacles;
     private ArrayList<String> obstacleTypes; // Track the type of each obstacle ("banana", "bomb", "regular")
-    private ArrayList<BufferedImage> obstacleImages; // Track the image for each obstacle
-
+    private ArrayList<BufferedImage> obstacleImages; // Stores the image for each obstacle
     private int obstacleWidth = 60;
     private int obstacleHeight = 40;
     private int laneHeight;
-    private int roadX;
-    private int roadY;
+    private int roadX; // X position where the road starts
+    private int roadY; // Y position where the road starts
     private int roadWidth;
     private int scrollSpeed;
     private int maxLane;
     private Random rand;
 
-    private ArrayList<BufferedImage> carImages = new ArrayList<>();
+    private ArrayList<BufferedImage> carImages = new ArrayList<>(); // List of car images to randomly select from
     private Random random = new Random();
 
-    private BufferedImage bananaImage;
-    private BufferedImage bombImage;
+    private Image bananaImage;
+    private Image bombImage;
     private int bananaWidth;
     private int bananaHeight;
     private int bombWidth;
@@ -64,7 +63,7 @@ public class Obstacles {
             e.printStackTrace();
         }
 
-        // Load car images
+        // Load the car images
         try {
             carImages.add(ImageIO.read(getClass().getResource("/car1.png")));
             carImages.add(ImageIO.read(getClass().getResource("/car2.png")));
@@ -77,8 +76,8 @@ public class Obstacles {
         }
     }
 
+    // Returns a random car image from the carImages list
     public BufferedImage getRandomCarImage() {
-        // Select a random image from the list of car images
         return carImages.get(random.nextInt(carImages.size()));
     }
 
@@ -88,11 +87,10 @@ public class Obstacles {
 
     // Generate random obstacles within the lanes of the road
     public void generateObstacle() {
-        int lane = rand.nextInt(maxLane - 2) + 1;  // Obstacles spawn only in intermediate lanes 2, 3, or 4
+        int lane = rand.nextInt(maxLane - 2) + 1; // Obstacles spawn only in intermediate lanes 2, 3, or 4
         int xPos = roadX + roadWidth;
         int yPos = roadY + (lane * laneHeight) + (laneHeight - obstacleHeight) / 2;
 
-        // Randomly choose between banana, bomb, and regular obstacle
         int obstacleType = rand.nextInt(3);
         if (obstacleType == 0) {
             // Banana
@@ -108,7 +106,7 @@ public class Obstacles {
             obstacleImages.add(null); // No image needed for bomb
         } else {
             // Regular car obstacle
-            BufferedImage carImage = getRandomCarImage();  // Get a random car image
+            BufferedImage carImage = getRandomCarImage(); // Select a random car image
             obstacles.add(new Rectangle(xPos, yPos, obstacleWidth, obstacleHeight));
             obstacleTypes.add("regular");
             obstacleImages.add(carImage); // Store the randomly chosen car image
@@ -119,14 +117,14 @@ public class Obstacles {
     public void moveObstacles() {
         for (int i = 0; i < obstacles.size(); i++) {
             Rectangle obstacle = obstacles.get(i);
-            obstacle.x -= scrollSpeed;  // Move obstacle left as the road scrolls
+            obstacle.x -= scrollSpeed; // Move obstacle left as the road scrolls
 
             // Remove obstacle if it moves off the screen
             if (obstacle.x + obstacle.width < 0) {
                 obstacles.remove(i);
                 obstacleTypes.remove(i);
-                obstacleImages.remove(i); // Remove the image associated with this obstacle
-                i--;  // Adjust index after removal
+                obstacleImages.remove(i); // Remove the associated image
+                i--; // Adjust index after removal
             }
         }
     }
@@ -138,24 +136,19 @@ public class Obstacles {
             return false;
         }
 
-        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth - 10, truckHeight);  // -10 fixes gap between car and obstacle
+        Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth - 10, truckHeight); // -10 fixes gap between car and obstacle
         for (int i = 0; i < obstacles.size(); i++) {
             Rectangle obstacle = obstacles.get(i);
             String type = obstacleTypes.get(i);
             Rectangle obstacleRect = new Rectangle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             if (truckRect.intersects(obstacleRect)) {
                 if (type.equals("banana")) {
-                    // Banana collision detected
-                    gamePanel.handleBananaCollision();
-                    return false;  // No crash, just sliding
-                } else if (type.equals("bomb")) {
-                    // Bomb collision detected
-                    gamePanel.handleBombCollision();  // End the game
-                    return true;  // Game over
+                    gamePanel.handleBananaCollision(); // Banana collision detected
+                    return false; // No crash, just sliding
                 } else {
-                    // Regular obstacle collision
-                    System.out.println("Collision detected with regular obstacle!");
-                    return true;  // Collision detected
+                    gamePanel.handleCollision(); // Collision with bomb or regular obstacle
+                    System.out.println("Collision detected with " + type + " obstacle! Game Over.");
+                    return true; // Game over
                 }
             }
         }
