@@ -73,7 +73,6 @@ public class GamePanel extends JPanel {
     private BufferedImage carImage;
     private BufferedImage backgroundImage;
     private BufferedImage streetImage;
-    private BufferedImage resizedStreetImage;
     private BufferedImage arrowImage;
     private BufferedImage resizedArrowImage;
 
@@ -185,7 +184,6 @@ public class GamePanel extends JPanel {
 
         try {
             streetImage = ImageIO.read(getClass().getResource("/HousesBackground.png"));
-            resizedStreetImage = resizeImage(streetImage, 3); //1.5 scaling
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Building image not found.");
@@ -365,20 +363,6 @@ public class GamePanel extends JPanel {
             g.drawImage(backgroundImage, 0, -50, windowWidth, 
                 windowHeight, null); // Draw background to cover the entire window
         }
-
-        if (streetImage != null) {
-            int buildingY = roadY - streetImage.getHeight() ; // Position above the road
-    
-            // Draw buildings in a row to fill the entire width
-            for (int x = buildingX; x < windowWidth; x += streetImage.getWidth()) {
-                g.drawImage(streetImage, x, buildingY, null);
-            }
-    
-            // Draw an additional building image before the first if necessary (for seamless scrolling)
-            if (buildingX > 0) {
-                g.drawImage(streetImage, buildingX - streetImage.getWidth(), buildingY, null);
-            }
-        }
     
         for(Tree tree : trees) {
             tree.draw(g);
@@ -474,11 +458,6 @@ public class GamePanel extends JPanel {
     private void scrollScreen() {
         if (gamePaused) {
             return; // If the game is paused, do nothing
-        }
-    
-        streetMoved += scrollSpeed;
-        if (streetMoved >= streetImage.getWidth()) {
-            streetMoved = 0; // Reset the scroll offset when one image width has been scrolled
         }
 
         // Update monkey position along with the scroll
@@ -680,17 +659,11 @@ public class GamePanel extends JPanel {
     }
 
     private void drawStreet(Graphics g) {
-        if (resizedStreetImage != null) {
-            int buildingY = roadY - resizedStreetImage.getHeight();
-    
-            // Draw the resized street image to fill the width
-            for (int x = buildingX; x < windowWidth; x += resizedStreetImage.getWidth()) {
-                g.drawImage(resizedStreetImage, x, buildingY, null);
-            }
-    
-            // For seamless scrolling, draw one additional image before the first if necessary
-            if (buildingX > 0) {
-                g.drawImage(resizedStreetImage, buildingX - resizedStreetImage.getWidth(), buildingY, null);
+        if (streetImage != null) {
+            int buildingY = roadY - 4 * streetImage.getHeight();
+            g.drawImage(streetImage, -streetMoved, buildingY, windowWidth, 200, null);
+            if (streetMoved > 0) {
+                g.drawImage(streetImage, windowWidth - streetMoved, buildingY, windowWidth, 200, null);
             }
         }
     }
