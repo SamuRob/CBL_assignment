@@ -1,6 +1,9 @@
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import javax.imageio.*;
 
 public class ParkingSpot {
     private ArrayList<Rectangle> parkingSpots;
@@ -22,6 +25,7 @@ public class ParkingSpot {
     private Rectangle parkingRegion;  // The parking region
 
     private boolean playerParked = false;
+    private BufferedImage parkingImage;
 
     // Define parking lanes
     private int[] parkingLanesY;  // Array for y-coordinates of parking lanes
@@ -52,6 +56,12 @@ public class ParkingSpot {
         parkingLanesY[1] = roadY + laneHeight;  // Lane 2 Y-position
         parkingLanesY[2] = roadY + (2 * laneHeight);  // Lane 3 Y-position
         parkingLanesY[3] = roadY + (3 * laneHeight);  // Lane 4 Y-position
+
+        try {
+            parkingImage = ImageIO.read(getClass().getResource("/ParkingSpot.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -112,7 +122,7 @@ public class ParkingSpot {
     }
 
 
-// Method to check if the truck can enter the parking region
+    // Method to check if the truck can enter the parking region
     public boolean canEnterParkingRegion(int truckX, int truckY, int truckWidth, int truckHeight) {
         Rectangle truckRect = new Rectangle(truckX, truckY, truckWidth, truckHeight);
         if (truckRect.intersects(parkingRegion)) {
@@ -123,22 +133,22 @@ public class ParkingSpot {
     }
 
 
-public boolean isSpotApproaching(int truckX) {
-    for (Rectangle spot : parkingSpots) {
-        // Check if the parking spot is within the required distance before it reaches the truck
-        if (spot.x - truckX <= distanceBeforeParking && spot.x > truckX) {
-            System.out.println("Parking spot is approaching");
-            return true;
+    public boolean isSpotApproaching(int truckX) {
+      for (Rectangle spot : parkingSpots) {
+            // Check if the parking spot is within the required distance before it reaches the truck
+            if (spot.x - truckX <= distanceBeforeParking && spot.x > truckX) {
+                System.out.println("Parking spot is approaching");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void removeCurrentSpot() {
+        if (!parkingSpots.isEmpty()) {
+            parkingSpots.remove(0);  // Assuming the first parking spot is the active one
         }
     }
-    return false;
-}
-
-public void removeCurrentSpot() {
-    if (!parkingSpots.isEmpty()) {
-        parkingSpots.remove(0);  // Assuming the first parking spot is the active one
-    }
-}
 
 
     // Adjust parking spot generation logic
@@ -156,26 +166,29 @@ public void removeCurrentSpot() {
     }
     
 
+    // Draw parking lanes and spots
+    public void drawParkingSpots(Graphics g) {
+        for (Rectangle spot : parkingSpots) {
+            if (parkingImage != null) {
+                g.drawImage(parkingImage, spot.x, spot.y, spot.width, spot.height, null);
+            }
+            else {
+                g.setColor(Color.GREEN);  // Green for parking spots
+                g.fillRect(spot.x, spot.y, spot.width, spot.height);  // Render parking spots to fit the lane
+            }
+                //gamePanel.drawAnticipationArrow(g, spot);
+                // Draw the anticipation arrow for each parking spot
+        }
 
-
-// Draw parking lanes and spots
-public void drawParkingSpots(Graphics g) {
-    g.setColor(Color.GREEN);  // Green for parking spots
-    for (Rectangle spot : parkingSpots) {
-        g.fillRect(spot.x, spot.y, spot.width, spot.height);  // Render parking spots to fit the lane
-            //gamePanel.drawAnticipationArrow(g, spot);
-            // Draw the anticipation arrow for each parking spot
+        // Draw the parking region (optional visual aid)
+        //g.setColor(Color.YELLOW);
+        //g.drawRect(parkingRegion.x, parkingRegion.y, parkingRegion.width, parkingRegion.height);
     }
 
-    // Draw the parking region (optional visual aid)
-    //g.setColor(Color.YELLOW);
-    //g.drawRect(parkingRegion.x, parkingRegion.y, parkingRegion.width, parkingRegion.height);
-}
-
-        public boolean isPlayerInParkingLane(int truckY) {
-            // Check if the player's Y position is in lane 1 or lane 5
-        return (truckY == parkingLanesY[0] || truckY == parkingLanesY[3]);  // Lane 1 and 5 are parking lanes
-        }
+    public boolean isPlayerInParkingLane(int truckY) {
+        // Check if the player's Y position is in lane 1 or lane 5
+    return (truckY == parkingLanesY[0] || truckY == parkingLanesY[3]);  // Lane 1 and 5 are parking lanes
+    }
 
 
 }
