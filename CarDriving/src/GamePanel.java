@@ -117,7 +117,8 @@ public class GamePanel extends JPanel {
         startButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
         startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
         
-        startButton.setBackground(Color.GREEN);
+        startButton.setBackground(Color.BLACK);
+        startButton.setForeground(Color.WHITE);
         startButton.setFocusPainted(false); // Removes the focus border
         startButton.setOpaque(true);
         startButton.setBorderPainted(false);
@@ -126,12 +127,12 @@ public class GamePanel extends JPanel {
         startButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                startButton.setBackground(new Color(0,255,255)); // Change background color when hovered
+                startButton.setBackground(Color.GRAY); // Change background color when hovered
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                startButton.setBackground(Color.GREEN); // Reset background color when not hovered
+                startButton.setBackground(Color.BLACK); // Reset background color when not hovered
             }
         });
 
@@ -143,10 +144,11 @@ public class GamePanel extends JPanel {
         instructionButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
         instructionButton.setBounds(windowWidth / 2 - 125, windowHeight / 2 + 60, 250, 50);
        
-        instructionButton.setBackground(Color.LIGHT_GRAY);
+        instructionButton.setBackground(Color.BLACK);
         instructionButton.setFocusPainted(false); // Removes the focus border
         instructionButton.setOpaque(true);
         instructionButton.setBorderPainted(false);
+        instructionButton.setForeground(Color.WHITE);
 
         // Add hover effect using a MouseListener
         instructionButton.addMouseListener(new MouseAdapter() {
@@ -157,7 +159,7 @@ public class GamePanel extends JPanel {
 
             @Override
             public void mouseExited(MouseEvent e) {
-                instructionButton.setBackground(Color.LIGHT_GRAY); // Reset background color when not hovered
+                instructionButton.setBackground(Color.BLACK); // Reset background color when not hovered
             }
         });
 
