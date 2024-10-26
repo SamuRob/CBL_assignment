@@ -27,6 +27,7 @@ public class GamePanel extends JPanel {
     private boolean isMovingRight;
     private boolean isMovingLeft;
     private boolean isSliding = false;
+    private boolean isCountdownRunning = true;
 
     private boolean GameRunning = false;
     private int windowHeight, windowWidth;
@@ -44,7 +45,7 @@ public class GamePanel extends JPanel {
     private int laneHeight;
 
     private int monkeyX = 100;
-    private int monkeyY = 200;
+    private int monkeyY = 300;
 
     private Obstacles obstacles;
     private int obstacleSpawnCount = 0; // Control spawn rate
@@ -198,11 +199,22 @@ public class GamePanel extends JPanel {
         }
 
         ImageIcon gifIcon = new ImageIcon(getClass().getResource("/monkey.gif"));
-        gifLabel = new JLabel(gifIcon);
+        Image scaledGifImage = gifIcon.getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT); //resize to dimensions
+        ImageIcon resizedGifIcon = new ImageIcon(scaledGifImage);
+        gifLabel = new JLabel(resizedGifIcon);
 
         gifLabel.setBounds(100, 100, gifIcon.getIconWidth(), gifIcon.getIconHeight());
 
         add(gifLabel);
+
+        speedIncreaseTimer = new javax.swing.Timer(10000, e -> {
+            scrollSpeed++; 
+            level++; 
+            scorePanel.updateLevel(level); //update level
+            obstacles.setScrollSpeed(scrollSpeed);
+            obstacles.increaseDifficulty(level); //increase obstacle frequency based on level
+            System.out.println("Level increased: " + level + " | Scroll Speed: " + scrollSpeed);
+        });        
 
         // Timer for scrolling effect
         gameTimer = new javax.swing.Timer(30, e -> {
@@ -225,6 +237,7 @@ public class GamePanel extends JPanel {
             System.out.println("Level increased: " + level + " | Scroll Speed: " + scrollSpeed);
         });
     }
+    
 
     private BufferedImage resizeImage(BufferedImage originalImage, double scale) {
         int newWidth = (int) (originalImage.getWidth() * scale);
@@ -311,6 +324,8 @@ public class GamePanel extends JPanel {
         GameRunning = true; // Set the game as running
         countdown = 3; // Start countdown from 3
         
+        isCountdownRunning = true; // countdown true at start of game
+
         gameTimer.start(); // Start the game timer
         speedIncreaseTimer.start(); // Start the speed increase timer
         
@@ -464,21 +479,21 @@ public class GamePanel extends JPanel {
         monkeyX -= scrollSpeed;
     
         // Define spawn regions for trees
-        int regionAboveTopLaneMinY = roadY - 100; // 100 pixels above the road
-        int regionAboveTopLaneRange = 50; // Vertical range for tree spawn above road
+        int regionAboveTopLaneMinY = roadY - 220; // 100 pixels above the road
+        int regionAboveTopLaneRange = 100; // Vertical range for tree spawn above road
     
-        int regionBelowBottomLaneMinY = roadY + (laneHeight * maxLane) - 30; // 50 pixels below the road
-        int regionBelowBottomLaneRange = 50; // Vertical range for tree spawn below road
+        int regionBelowBottomLaneMinY = roadY + (laneHeight * maxLane)  - 10; // 50 pixels below the road
+        int regionBelowBottomLaneRange = 100; // Vertical range for tree spawn below road
     
         // Randomly decide if a tree should spawn in the above-top-lane region
-        if (random.nextInt(100) < 6) { // Adjust the probability to control spawn rate
+        if (random.nextInt(100) < 20) { // Adjust the probability to control spawn rate
             int treeYAbove = regionAboveTopLaneMinY + random.nextInt(regionAboveTopLaneRange);
             trees.add(new Tree(roadX - 80, treeYAbove)); // Left side of the road
             trees.add(new Tree(roadX + roadWidth + 60, treeYAbove)); // Right side of the road
         }
     
         // Randomly decide if a tree should spawn in the below-bottom-lane region
-        if (random.nextInt(100) < 10) { // Adjust the probability to control spawn rate
+        if (random.nextInt(100) < 20) { // Adjust the probability to control spawn rate
             int treeYBelow = regionBelowBottomLaneMinY + random.nextInt(regionBelowBottomLaneRange);
             trees.add(new Tree(roadX - 80, treeYBelow)); // Left side of the road
             trees.add(new Tree(roadX + roadWidth + 60, treeYBelow)); // Right side of the road
@@ -538,8 +553,12 @@ public class GamePanel extends JPanel {
             obstacles.generateObstacle();
             obstacleSpawnCount = 0;
         }
-        obstacles.moveObstacles(truckX, truckY);
     
+        obstacles.generateObstaclesIfReady();
+        obstacles.moveObstacles(truckX, truckY);
+
+
+
         if (parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
             gamePaused = true;
             gameTimer.stop();
@@ -587,7 +606,8 @@ public class GamePanel extends JPanel {
         currentLane = 3; // Reset to middle lane
         laneMoved = 0;
         scrollSpeed = 5; // Reset the scroll speed
-        level = 1; // Reset the level
+        level = 15; // Reset the level
+        scorePanel.reset();
     
         // Recreate obstacles and parking spots for a fresh start
         obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed, this);

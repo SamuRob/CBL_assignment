@@ -7,7 +7,7 @@ public class ScorePanel extends JPanel {
     private int money = 0;
     private int highScore = 0;
     private int score = 0;
-    private JLabel moneyLabel;
+    //private JLabel moneyLabel;
     private JLabel scoreLabel;
     private JLabel highScoreLabel;
     private Random random;
@@ -16,13 +16,13 @@ public class ScorePanel extends JPanel {
     public ScorePanel() {
         setLayout(new FlowLayout(FlowLayout.RIGHT));  // Align components to the right
     
-        moneyLabel = new JLabel("Money: $0");
+        //moneyLabel = new JLabel("Money: $0");
         scoreLabel = new JLabel("Score: 0");
         highScoreLabel = new JLabel("High Score: 0");
         levelLabel = new JLabel("Level: 1");  // Initial level display
     
         add(scoreLabel);
-        add(moneyLabel);
+        //add(moneyLabel);
         add(highScoreLabel);
         add(levelLabel);  // Add the level label to the panel
     
@@ -32,14 +32,14 @@ public class ScorePanel extends JPanel {
     // Method to reset the score and money when a new game starts
     public void reset() {
         score = 0;
-        money = 0;
+        levelLabel.setText("Level: 1");
         updateLabels();
     }
-
+    
     public void addRandomMoney() {
         Random random = new Random();
         int reward = random.nextInt(41) + 10;  // Random value between 10 and 50
-        money += reward;
+        score += reward;
         updateLabels();
     }
     
@@ -68,7 +68,7 @@ public class ScorePanel extends JPanel {
             highScore = score;  // Update high score if current score is greater
         }
 
-        moneyLabel.setText("Money: $" + money);
+        //moneyLabel.setText("Money: $" + money);
         scoreLabel.setText("Score: " + score);
         highScoreLabel.setText("High Score: " + highScore);
     }

@@ -19,6 +19,8 @@ public class Obstacles {
     private int scrollSpeed;
     private int maxLane;
     private Random rand;
+    private int obstacleGenerationDelay;
+    private int obstacleGenerationCounter; //counter to track delay 
 
     private ArrayList<BufferedImage> carImages = new ArrayList<>(); // List of car images to randomly select from
     private Random random = new Random();
@@ -29,6 +31,7 @@ public class Obstacles {
     private int bananaHeight;
     private int bombWidth;
     private int bombHeight;
+    private int lastLane = -1;
 
     private GamePanel gamePanel;
 
@@ -46,6 +49,9 @@ public class Obstacles {
         obstacleImages = new ArrayList<>();
         obstacleSpeeds = new ArrayList<>();
         rand = new Random();
+
+        obstacleGenerationDelay = 1000;
+        obstacleGenerationCounter = 0;
 
         // Load the banana image
         try {
@@ -85,14 +91,15 @@ public class Obstacles {
     public void setScrollSpeed(int newScrollSpeed) {
         this.scrollSpeed = newScrollSpeed;
     }
-
-    // Generate random obstacles within the lanes of the road
     public void generateObstacle() {
+        // Generate a random lane between 2 and 4 (0-indexed: lanes 1, 2, and 3)
         int lane = rand.nextInt(maxLane - 2) + 1;
-        int xPos = roadX + roadWidth;
+        int xPos = roadX + roadWidth + rand.nextInt(100) + 150; 
+        // so obstacles dont spawn in same column
+        
         int yPos = roadY + (lane * laneHeight) + (laneHeight - obstacleHeight) / 2;
-
-        int obstacleType = rand.nextInt(3);
+    
+        int obstacleType = rand.nextInt(3); // Randomly select the type of obstacle
         if (obstacleType == 0) {
             obstacles.add(new Rectangle(xPos, yPos, bananaWidth, bananaHeight));
             obstacleTypes.add("banana");
@@ -111,6 +118,23 @@ public class Obstacles {
             obstacleSpeeds.add((float) scrollSpeed); // Starting speed for car obstacles
         }
     }
+    
+    
+    
+
+    public void generateObstaclesIfReady() {
+        obstacleGenerationCounter += scrollSpeed; // Increment counter based on scroll speed
+    
+        if (obstacleGenerationCounter >= obstacleGenerationDelay) {
+            generateObstacle(); // Generate an obstacle
+            obstacleGenerationCounter = 0; // Reset counter after generation
+        }
+    }
+    
+    public void increaseDifficulty(int level) {
+        obstacleGenerationDelay = Math.max(500, 1000 - (level * 50)); // Reduce delay with level, set minimum delay to 500
+    }
+
 
     // Move obstacles with acceleration
     public void moveObstacles(int playerX, int playerY) {
@@ -124,7 +148,7 @@ public class Obstacles {
     
                 // Adjust the speed based on distance to player's car
                 if (obstacle.x > playerX) {
-                    currentSpeed += 0.4f; // Accelerate gradually
+                    currentSpeed += 0.2f; // Accelerate gradually
                 }
                 obstacleSpeeds.set(i, currentSpeed); // Update the speed in obstacleSpeeds list
     
