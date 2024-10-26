@@ -73,7 +73,14 @@ public class GamePanel extends JPanel {
     private BufferedImage carImage;
     private BufferedImage backgroundImage;
     private BufferedImage streetImage;
+    private BufferedImage resizedStreetImage;
+    private BufferedImage arrowImage;
+    private BufferedImage resizedArrowImage;
+
+    //private ArrayList<BufferedImage> carImages = new ArrayList<>();
+    //private Random random = new Random();
     
+
     private int streetMoved;
     private int buildingX;
 
@@ -105,7 +112,8 @@ public class GamePanel extends JPanel {
         this.truckX = windowWidth / 2 - carWidth / 2;
         this.truckY = roadY + (laneHeight * (currentLane - 1)) + (laneHeight - carHeight) / 2;
 
-        startButton = new JButton("Start Game");
+        startButton = new JButton("Start");
+        startButton.setFont(new Font("Verdana", Font.BOLD, 22));
         startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
         
         startButton.setBackground(Color.GREEN);
@@ -131,6 +139,7 @@ public class GamePanel extends JPanel {
         add(startButton); // Add start button to the panel
 
         instructionButton = new JButton("Instructions");
+        instructionButton.setFont(new Font("Verdana", Font.BOLD, 22));
         instructionButton.setBounds(windowWidth / 2 - 100, windowHeight / 2 + 60, 200, 50);
        
         instructionButton.setBackground(Color.LIGHT_GRAY);
@@ -176,10 +185,18 @@ public class GamePanel extends JPanel {
 
         try {
             streetImage = ImageIO.read(getClass().getResource("/HousesBackground.png"));
-            //buildingX = windowWidth;
+            resizedStreetImage = resizeImage(streetImage, 3); //1.5 scaling
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Building image not found.");
+        }
+
+        try {
+            arrowImage = ImageIO.read(getClass().getResource("/arrow_buttons.png"));
+            resizedArrowImage = resizeImage(arrowImage, 5);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Instruction image not found.");
         }
 
         ImageIcon gifIcon = new ImageIcon(getClass().getResource("/monkey.gif"));
@@ -210,6 +227,20 @@ public class GamePanel extends JPanel {
             System.out.println("Level increased: " + level + " | Scroll Speed: " + scrollSpeed);
         });
     }
+
+    private BufferedImage resizeImage(BufferedImage originalImage, double scale) {
+        int newWidth = (int) (originalImage.getWidth() * scale);
+        int newHeight = (int) (originalImage.getHeight() * scale);
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, originalImage.getType());
+        
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+        g2d.dispose();
+        
+        return resizedImage;
+    }
+    
+
     private void showInstructions() {
         gameState = INSTRUCTION_SCREEN; // Switch to the instruction screen
     
@@ -356,21 +387,28 @@ public class GamePanel extends JPanel {
         // Handle different game states
         if (gameState == START_SCREEN) {
             drawStartScreen(g); // Draw the start screen
+            remove(gifLabel);
         } else if (gameState == GAME_SCREEN) {
             drawRoad(g); // Draw the road
             parkingSpot.drawParkingSpots(g); // Draw parking lanes and spots
             obstacles.drawObstacles(g); // Draw obstacles
             drawVehicle(g); // Draw the vehicle (car)
-            
+            drawStreet(g);
            // Rectangle spot = parkingSpot.getNextParkingSpot();
            // drawAnticipationArrow(g); // Draw anticipation arrow
     
+            // Only add the monkey gif when the game is running
+            if (!isAncestorOf(gifLabel)) {
+                add(gifLabel);
+            }
+
             // Draw the countdown on top of the road and other elements, if applicable
             if (countdown > 0) {
                 drawCountdown(g); // Draw the countdown
             }
         } else if (gameState == INSTRUCTION_SCREEN) {
             drawInstructionScreen(g); // Draw the instruction screen
+            remove(gifLabel);
         }
     }
     
@@ -379,15 +417,21 @@ public class GamePanel extends JPanel {
         g.fillRect(0, 0, windowWidth, windowHeight);
 
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 36));
+        g.setFont(new Font("Trebuchet MS", Font.BOLD, 50));
         g.drawString("Instructions", windowWidth / 2 - 100, 100);
 
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        g.setFont(new Font("Trebuchet MS", Font.PLAIN, 25));
         g.drawString("Use the arrow keys to move the vehicle.", 100, 200);
         g.drawString("Avoid obstacles and park in designated spots.", 100, 240);
         g.drawString("Press UP or DOWN to change lanes.", 100, 280);
         g.drawString("Press SPACE to pause the game.", 100, 320);
     
+        if (arrowImage != null) {
+            int imageX = (windowWidth - resizedArrowImage.getWidth()) / 2; // Center horizontally
+            int imageY = windowHeight / 2 - resizedArrowImage.getHeight() / 2; // Center vertically
+            g.drawImage(resizedArrowImage, imageX + 200, imageY - 100, null);
+        }
+
         JButton backButton = new JButton("Back to Start");
         backButton.setBounds(windowWidth / 2 - 100, windowHeight - 150, 200, 50); 
         backButton.addActionListener(e -> backToStart()); // return to home screen
@@ -406,8 +450,8 @@ public class GamePanel extends JPanel {
     
 
     private void drawCountdown(Graphics g) {
-        g.setColor(Color.BLACK); // Set the text color
-        g.setFont(new Font("Arial", Font.BOLD, 72)); // Set a large font for the countdown
+        g.setColor(Color.WHITE); // Set the text color
+        g.setFont(new Font("Trebuchet MS", Font.BOLD, 100)); // Set a large font for the countdown
 
         String countdownText = countdown > 0 ? String.valueOf(countdown) : "GO!"; 
         int textWidth = g.getFontMetrics().stringWidth(countdownText); 
@@ -529,6 +573,7 @@ public class GamePanel extends JPanel {
             gameTimer.stop();
         }
     
+        //drawStreet(Graphics g);
         repaint();
     }
     
@@ -596,8 +641,9 @@ public class GamePanel extends JPanel {
 
         // Title Text
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 36));
-        g.drawString("Hizmet Delivery Game", windowWidth / 2 - 180, windowHeight / 2 - 100);
+        g.setFont(new Font("Trebuchet MS", Font.BOLD, 60));
+        g.drawString("Hizmet", windowWidth / 2 - 100, windowHeight / 2 - 100);
+        g.drawString("Delivery Game", windowWidth / 2 - 200, windowHeight / 2 - 50);
     }
 
     // Draw the Road
@@ -634,16 +680,21 @@ public class GamePanel extends JPanel {
     }
 
     private void drawStreet(Graphics g) {
-        // g.setColor(new Color(137,200,58));
-        // g.fillRect(0, 0, windowWidth, windowHeight);
-        
-        if (streetImage != null) {
-            g.drawImage(streetImage, -streetMoved, roadY - 200, windowWidth, 200, null);
-            if (streetMoved > 0) {
-                g.drawImage(streetImage, windowWidth - streetMoved, roadY - 200, windowWidth, 200, null);
+        if (resizedStreetImage != null) {
+            int buildingY = roadY - resizedStreetImage.getHeight();
+    
+            // Draw the resized street image to fill the width
+            for (int x = buildingX; x < windowWidth; x += resizedStreetImage.getWidth()) {
+                g.drawImage(resizedStreetImage, x, buildingY, null);
+            }
+    
+            // For seamless scrolling, draw one additional image before the first if necessary
+            if (buildingX > 0) {
+                g.drawImage(resizedStreetImage, buildingX - resizedStreetImage.getWidth(), buildingY, null);
             }
         }
     }
+    
     
     
     

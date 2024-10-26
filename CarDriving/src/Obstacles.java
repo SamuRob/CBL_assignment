@@ -1,24 +1,30 @@
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
-import javax.imageio.*;
-import java.io.*;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 
 public class Obstacles {
     private ArrayList<Rectangle> obstacles;
     private ArrayList<String> obstacleTypes; // Track the type of each obstacle ("banana", "bomb", "regular")
+    private ArrayList<BufferedImage> obstacleImages; // Track the image for each obstacle
+
     private int obstacleWidth = 60;
     private int obstacleHeight = 40;
     private int laneHeight;
-    private int roadX;  // X position where the road starts
-    private int roadY;  // Y position where the road starts
+    private int roadX;
+    private int roadY;
     private int roadWidth;
     private int scrollSpeed;
     private int maxLane;
     private Random rand;
 
-    private Image bananaImage;
-    private Image bombImage;
+    private ArrayList<BufferedImage> carImages = new ArrayList<>();
+    private Random random = new Random();
+
+    private BufferedImage bananaImage;
+    private BufferedImage bombImage;
     private int bananaWidth;
     private int bananaHeight;
     private int bombWidth;
@@ -37,6 +43,7 @@ public class Obstacles {
 
         obstacles = new ArrayList<>();
         obstacleTypes = new ArrayList<>();
+        obstacleImages = new ArrayList<>();
         rand = new Random();
 
         // Load the banana image
@@ -56,6 +63,23 @@ public class Obstacles {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // Load car images
+        try {
+            carImages.add(ImageIO.read(getClass().getResource("/car1.png")));
+            carImages.add(ImageIO.read(getClass().getResource("/car2.png")));
+            carImages.add(ImageIO.read(getClass().getResource("/car3.png")));
+            carImages.add(ImageIO.read(getClass().getResource("/car4.png")));
+            carImages.add(ImageIO.read(getClass().getResource("/car5.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("One or more car images could not be loaded.");
+        }
+    }
+
+    public BufferedImage getRandomCarImage() {
+        // Select a random image from the list of car images
+        return carImages.get(random.nextInt(carImages.size()));
     }
 
     public void setScrollSpeed(int newScrollSpeed) {
@@ -75,15 +99,19 @@ public class Obstacles {
             int bananaYPos = roadY + (lane * laneHeight) + (laneHeight - bananaHeight) / 2;
             obstacles.add(new Rectangle(xPos, bananaYPos, bananaWidth, bananaHeight));
             obstacleTypes.add("banana");
+            obstacleImages.add(null); // No image needed for banana
         } else if (obstacleType == 1) {
             // Bomb
             int bombYPos = roadY + (lane * laneHeight) + (laneHeight - bombHeight) / 2;
             obstacles.add(new Rectangle(xPos, bombYPos, bombWidth, bombHeight));
             obstacleTypes.add("bomb");
+            obstacleImages.add(null); // No image needed for bomb
         } else {
-            // Regular obstacle
+            // Regular car obstacle
+            BufferedImage carImage = getRandomCarImage();  // Get a random car image
             obstacles.add(new Rectangle(xPos, yPos, obstacleWidth, obstacleHeight));
             obstacleTypes.add("regular");
+            obstacleImages.add(carImage); // Store the randomly chosen car image
         }
     }
 
@@ -97,6 +125,7 @@ public class Obstacles {
             if (obstacle.x + obstacle.width < 0) {
                 obstacles.remove(i);
                 obstacleTypes.remove(i);
+                obstacleImages.remove(i); // Remove the image associated with this obstacle
                 i--;  // Adjust index after removal
             }
         }
@@ -138,13 +167,21 @@ public class Obstacles {
         for (int i = 0; i < obstacles.size(); i++) {
             Rectangle obstacle = obstacles.get(i);
             String type = obstacleTypes.get(i);
+
             if (type.equals("banana")) {
                 g.drawImage(bananaImage, obstacle.x, obstacle.y, bananaWidth, bananaHeight, null);
             } else if (type.equals("bomb")) {
                 g.drawImage(bombImage, obstacle.x, obstacle.y, bombWidth, bombHeight, null);
             } else {
-                g.setColor(Color.BLUE);  // Regular obstacle
-                g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                // Draw car image for regular obstacles
+                BufferedImage carImage = obstacleImages.get(i);
+                if (carImage != null) {
+                    g.drawImage(carImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height, null);
+                } else {
+                    // Fallback to a default color if image is missing
+                    g.setColor(Color.BLUE);
+                    g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                }
             }
         }
     }
