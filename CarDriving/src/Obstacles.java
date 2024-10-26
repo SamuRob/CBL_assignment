@@ -9,7 +9,7 @@ public class Obstacles {
     private ArrayList<Rectangle> obstacles;
     private ArrayList<String> obstacleTypes; // Track the type of each obstacle ("banana", "bomb", "regular")
     private ArrayList<BufferedImage> obstacleImages; // Track the image for each obstacle
-    private ArrayList<Float> obstacleSpeeds = new ArrayList<>(); // Speed for each obstacle to simulate acceleration
+    private ArrayList<Float> obstacleSpeeds; // Speed for each obstacle to simulate acceleration
     private int obstacleWidth = 60;
     private int obstacleHeight = 40;
     private int laneHeight;
@@ -19,19 +19,22 @@ public class Obstacles {
     private int scrollSpeed;
     private int maxLane;
     private Random rand;
-    private int obstacleGenerationDelay;
-    private int obstacleGenerationCounter; //counter to track delay 
+    private int obstacleGenerationDelay = 1000;
+    private int obstacleGenerationCounter = 0; // Counter to track delay
+    private double bananaProbability = 0.2;
 
-    private ArrayList<BufferedImage> carImages = new ArrayList<>(); // List of car images to randomly select from
-    private Random random = new Random();
+    private ArrayList<BufferedImage> carImages; // List of car images to randomly select from
+    private Random random;
 
+    private int minObstacleSpacing = 200; // Minimum space between obstacles
     private Image bananaImage;
     private Image bombImage;
     private int bananaWidth;
     private int bananaHeight;
     private int bombWidth;
     private int bombHeight;
-    private int lastLane = -1;
+
+    private final int minObstacleGenerationDelay = 300; // Minimum delay for obstacle generation
 
     private GamePanel gamePanel;
 
@@ -49,9 +52,8 @@ public class Obstacles {
         obstacleImages = new ArrayList<>();
         obstacleSpeeds = new ArrayList<>();
         rand = new Random();
-
-        obstacleGenerationDelay = 1000;
-        obstacleGenerationCounter = 0;
+        carImages = new ArrayList<>();
+        random = new Random();
 
         // Load the banana image
         try {
@@ -84,6 +86,11 @@ public class Obstacles {
         }
     }
 
+    public void increaseBananaProbability(int level) {
+        bananaProbability = Math.min(0.5, bananaProbability + level * 0.01);
+        // Max 50% banana spawn, original level is 20%
+    }
+
     public BufferedImage getRandomCarImage() {
         return carImages.get(random.nextInt(carImages.size()));
     }
@@ -91,72 +98,89 @@ public class Obstacles {
     public void setScrollSpeed(int newScrollSpeed) {
         this.scrollSpeed = newScrollSpeed;
     }
+
     public void generateObstacle() {
-        // Generate a random lane between 2 and 4 (0-indexed: lanes 1, 2, and 3)
-        int lane = rand.nextInt(maxLane - 2) + 1;
-        int xPos = roadX + roadWidth + rand.nextInt(100) + 150; 
-        // so obstacles dont spawn in same column
-        
+        int lane = rand.nextInt(maxLane - 2) + 1; // Random lane between 1 and maxLane - 1
+        int xPos = roadX + roadWidth + rand.nextInt(100) + 150; // Starting X position
         int yPos = roadY + (lane * laneHeight) + (laneHeight - obstacleHeight) / 2;
-    
-        int obstacleType = rand.nextInt(3); // Randomly select the type of obstacle
-        if (obstacleType == 0) {
-            obstacles.add(new Rectangle(xPos, yPos, bananaWidth, bananaHeight));
-            obstacleTypes.add("banana");
-            obstacleImages.add(null); // No image needed for banana
-            obstacleSpeeds.add((float) scrollSpeed); // Fixed speed for banana
-        } else if (obstacleType == 1) {
-            obstacles.add(new Rectangle(xPos, yPos, bombWidth, bombHeight));
-            obstacleTypes.add("bomb");
-            obstacleImages.add(null); // No image needed for bomb
-            obstacleSpeeds.add((float) scrollSpeed); // Fixed speed for bomb
-        } else {
-            BufferedImage carImage = getRandomCarImage();
-            obstacles.add(new Rectangle(xPos, yPos, obstacleWidth, obstacleHeight));
-            obstacleTypes.add("regular");
-            obstacleImages.add(carImage);
-            obstacleSpeeds.add((float) scrollSpeed); // Starting speed for car obstacles
+
+        // Check if the new obstacle is far enough from the last obstacle
+        boolean isFarEnough = true;
+        for (Rectangle existingObstacle : obstacles) {
+            if (Math.abs(existingObstacle.x - xPos) < minObstacleSpacing) {
+                isFarEnough = false;
+                break;
+            }
+        }
+
+        // Only add the obstacle if it's far enough from others
+        if (isFarEnough) {
+            double randomValue = rand.nextDouble(); // Generate a random value between 0.0 and 1.0
+
+            if (randomValue < bananaProbability) {
+                // Spawn a banana obstacle
+                obstacles.add(new Rectangle(xPos, yPos, bananaWidth, bananaHeight));
+                obstacleTypes.add("banana");
+                obstacleImages.add(null); // No image needed for banana
+                obstacleSpeeds.add((float) scrollSpeed); // Fixed speed for banana
+            } else if (randomValue < bananaProbability + 0.2) {
+                // Spawn a bomb obstacle (20% probability if banana didn't spawn)
+                obstacles.add(new Rectangle(xPos, yPos, bombWidth, bombHeight));
+                obstacleTypes.add("bomb");
+                obstacleImages.add(null); // No image needed for bomb
+                obstacleSpeeds.add((float) scrollSpeed); // Fixed speed for bomb
+            } else {
+                // Spawn a regular car obstacle
+                BufferedImage carImage = getRandomCarImage();
+                obstacles.add(new Rectangle(xPos, yPos, obstacleWidth, obstacleHeight));
+                obstacleTypes.add("regular");
+                obstacleImages.add(carImage);
+                obstacleSpeeds.add((float) scrollSpeed); // Starting speed for car obstacles
+            }
         }
     }
-    
-    
-    
 
     public void generateObstaclesIfReady() {
-        obstacleGenerationCounter += scrollSpeed; // Increment counter based on scroll speed
-    
+        obstacleGenerationCounter += scrollSpeed;
+
         if (obstacleGenerationCounter >= obstacleGenerationDelay) {
-            generateObstacle(); // Generate an obstacle
-            obstacleGenerationCounter = 0; // Reset counter after generation
+            generateObstacle();
+            obstacleGenerationCounter = 0;
         }
     }
-    
+
     public void increaseDifficulty(int level) {
-        obstacleGenerationDelay = Math.max(500, 1000 - (level * 50)); // Reduce delay with level, set minimum delay to 500
+        //obstacleGenerationDelay = Math.max(300, 1000 - (level * 50));
+        int newDelay = Math.max(300, 1000 - (level * 50));
+        setObstacleGenerationDelay(newDelay);
     }
 
+    public void setObstacleGenerationDelay(int delay) {
+        obstacleGenerationDelay = delay;
+    }
+    
 
     // Move obstacles with acceleration
     public void moveObstacles(int playerX, int playerY) {
         for (int i = 0; i < obstacles.size(); i++) {
             Rectangle obstacle = obstacles.get(i);
             String type = obstacleTypes.get(i);
-    
+
             if (type.equals("regular")) {
                 // Get the current speed for this obstacle
                 float currentSpeed = obstacleSpeeds.get(i);
-    
+
                 // Adjust the speed based on distance to player's car
                 if (obstacle.x > playerX) {
                     currentSpeed += 0.2f; // Accelerate gradually
                 }
                 obstacleSpeeds.set(i, currentSpeed); // Update the speed in obstacleSpeeds list
-    
+
                 obstacle.x -= currentSpeed; // Move obstacle with updated speed
             } else {
                 obstacle.x -= scrollSpeed; // Move other obstacles with the standard scroll speed
             }
-    
+
             // Remove obstacle if it moves off the screen
             if (obstacle.x + obstacle.width < 0) {
                 obstacles.remove(i);
@@ -167,9 +191,6 @@ public class Obstacles {
             }
         }
     }
-    
-    
-    
 
     // Check for collision with the truck
     public boolean checkCollision(int truckX, int truckY, int truckWidth, int truckHeight, boolean isImmune) {

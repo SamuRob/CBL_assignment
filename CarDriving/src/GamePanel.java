@@ -22,7 +22,7 @@ public class GamePanel extends JPanel {
     private int scrollSpeed = 5;
     private int level = 1;
 
-
+    private Font retroFont; // define font
 
     private boolean isMovingRight;
     private boolean isMovingLeft;
@@ -33,7 +33,7 @@ public class GamePanel extends JPanel {
     private int windowHeight, windowWidth;
     private int countdown = 3;
 
-    private boolean isImmune = false; // Immunity to vehicle after leaving parking
+    private boolean isImmune = false; // immunity to vehicle after leaving parking
 
     private ScorePanel scorePanel;
     private GamePanel gamePanel;
@@ -87,8 +87,9 @@ public class GamePanel extends JPanel {
     private JLabel gifLabel;
 
     public GamePanel(ScorePanel scorePanel) {
-       // this.scorePanel = scorePanel;
+        this.scorePanel = scorePanel;
 
+        loadCustomFont();
 
         setLayout(null);
 
@@ -113,7 +114,7 @@ public class GamePanel extends JPanel {
         this.truckY = roadY + (laneHeight * (currentLane - 1)) + (laneHeight - carHeight) / 2;
 
         startButton = new JButton("Start");
-        startButton.setFont(new Font("Verdana", Font.BOLD, 22));
+        startButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
         startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
         
         startButton.setBackground(Color.GREEN);
@@ -139,8 +140,8 @@ public class GamePanel extends JPanel {
         add(startButton); // Add start button to the panel
 
         instructionButton = new JButton("Instructions");
-        instructionButton.setFont(new Font("Verdana", Font.BOLD, 22));
-        instructionButton.setBounds(windowWidth / 2 - 100, windowHeight / 2 + 60, 200, 50);
+        instructionButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
+        instructionButton.setBounds(windowWidth / 2 - 125, windowHeight / 2 + 60, 250, 50);
        
         instructionButton.setBackground(Color.LIGHT_GRAY);
         instructionButton.setFocusPainted(false); // Removes the focus border
@@ -177,9 +178,9 @@ public class GamePanel extends JPanel {
             e.printStackTrace();
         }
 
-        try{
+        try {
             backgroundImage = ImageIO.read(getClass().getResource("/BackgroundImage.png"));
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -213,6 +214,7 @@ public class GamePanel extends JPanel {
             scorePanel.updateLevel(level); //update level
             obstacles.setScrollSpeed(scrollSpeed);
             obstacles.increaseDifficulty(level); //increase obstacle frequency based on level
+            obstacles.increaseBananaProbability(level);
             System.out.println("Level increased: " + level + " | Scroll Speed: " + scrollSpeed);
         });        
 
@@ -227,13 +229,19 @@ public class GamePanel extends JPanel {
         obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed, this);
         parkingSpot = new ParkingSpot(roadWidth, roadX, roadY, roadHeight / maxLane);
 
-        // Initialize the speed increase timer (e.g., every 30 seconds)
-        speedIncreaseTimer = new javax.swing.Timer(10000, e -> {
-            scrollSpeed++; // Increase scroll speed
 
-            level++; // Increase the level
+        //EVERY 15 seconds increase level
+        speedIncreaseTimer = new javax.swing.Timer(15000, e -> {
+            scrollSpeed++; 
+
+            level++; 
             scorePanel.updateLevel(level); // Update the level display
             obstacles.setScrollSpeed(scrollSpeed);
+            obstacles.increaseDifficulty(level);
+           
+            int newDelay = Math.max(300, 1000 - (level * 50));
+            obstacles.setObstacleGenerationDelay(newDelay);
+            
             System.out.println("Level increased: " + level + " | Scroll Speed: " + scrollSpeed);
         });
     }
@@ -251,6 +259,21 @@ public class GamePanel extends JPanel {
         return resizedImage;
     }
     
+
+    protected void loadCustomFont() {
+        try {
+            // Load the font file as a resource
+            InputStream fontStream = getClass().getResourceAsStream("/retro_font.ttf");
+            retroFont = Font.createFont(Font.TRUETYPE_FONT, fontStream);
+            fontStream.close(); // Close the stream
+
+            System.out.println("Custom font loaded successfully!");
+        } catch (FontFormatException | IOException e) {
+            e.printStackTrace();
+            System.out.println("Failed to load custom font. Using default font.");
+            retroFont = new Font("SansSerif", Font.PLAIN, 24); // Fallback font
+        }
+    }
 
     private void showInstructions() {
         gameState = INSTRUCTION_SCREEN; // Switch to the instruction screen
@@ -416,10 +439,10 @@ public class GamePanel extends JPanel {
         g.fillRect(0, 0, windowWidth, windowHeight);
 
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Trebuchet MS", Font.BOLD, 50));
+        g.setFont(retroFont.deriveFont(Font.BOLD, 50));
         g.drawString("Instructions", windowWidth / 2 - 100, 100);
 
-        g.setFont(new Font("Trebuchet MS", Font.PLAIN, 25));
+        g.setFont(retroFont.deriveFont(Font.BOLD, 25));
         g.drawString("Use the arrow keys to move the vehicle.", 100, 200);
         g.drawString("Avoid obstacles and park in designated spots.", 100, 240);
         g.drawString("Press UP or DOWN to change lanes.", 100, 280);
@@ -450,7 +473,7 @@ public class GamePanel extends JPanel {
 
     private void drawCountdown(Graphics g) {
         g.setColor(Color.WHITE); // Set the text color
-        g.setFont(new Font("Trebuchet MS", Font.BOLD, 100)); // Set a large font for the countdown
+        g.setFont(retroFont.deriveFont(Font.BOLD, 100));
 
         String countdownText = countdown > 0 ? String.valueOf(countdown) : "GO!"; 
         int textWidth = g.getFontMetrics().stringWidth(countdownText); 
@@ -606,7 +629,7 @@ public class GamePanel extends JPanel {
         currentLane = 3; // Reset to middle lane
         laneMoved = 0;
         scrollSpeed = 5; // Reset the scroll speed
-        level = 15; // Reset the level
+        level = 1; // Reset the level
         scorePanel.reset();
     
         // Recreate obstacles and parking spots for a fresh start
@@ -640,9 +663,19 @@ public class GamePanel extends JPanel {
 
         // Title Text
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Trebuchet MS", Font.BOLD, 60));
-        g.drawString("Hizmet", windowWidth / 2 - 100, windowHeight / 2 - 100);
-        g.drawString("Delivery Game", windowWidth / 2 - 200, windowHeight / 2 - 50);
+        g.setFont(retroFont.deriveFont(Font.BOLD, 60));
+        
+        FontMetrics metrics = g.getFontMetrics(retroFont.deriveFont(Font.BOLD, 60));
+
+        int hizmetX = (windowWidth - metrics.stringWidth("Hizmet")) / 2; // get exact x for center
+        int hizmetY = (windowHeight / 2 - 100);
+
+        g.drawString("Hizmet", hizmetX, hizmetY);
+
+        int deliveryGameX = (windowWidth - metrics.stringWidth("Delivery Game")) / 2;
+        int deliveryGameY = windowHeight / 2 - 50;  // get exact y for center
+
+        g.drawString("Delivery Game", deliveryGameX, deliveryGameY);
     }
 
     // Draw the Road
