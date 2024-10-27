@@ -463,10 +463,53 @@ public class GamePanel extends JPanel {
         }
 
         JButton backButton = new JButton("Back to Start");
-        backButton.setBounds(windowWidth / 2 - 100, windowHeight - 150, 200, 50); 
+        backButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
+        backButton.setBackground(Color.BLACK);
+        backButton.setForeground(Color.WHITE);
+        backButton.setFocusPainted(false); // Removes the focus border
+        backButton.setOpaque(true);
+        backButton.setBorderPainted(false);
+
+        backButton.setBounds(windowWidth / 2 - 150, windowHeight - 150, 300, 50); 
         backButton.addActionListener(e -> backToStart()); // return to home screen
         setLayout(null); 
         add(backButton); 
+
+        backButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                backButton.setBackground(hoverHizmetColor); // Change background color when hovered
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                backButton.setBackground(Color.BLACK); // Reset background color when not hovered
+            }
+        });
+
+        /*
+         *        startButton = new JButton("Start");
+        startButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
+        startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
+        
+        startButton.setBackground(hizmetColor);
+        startButton.setForeground(Color.WHITE);
+        startButton.setFocusPainted(false); // Removes the focus border
+        startButton.setOpaque(true);
+        startButton.setBorderPainted(false);
+
+                startButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                startButton.setBackground(hoverHizmetColor); // Change background color when hovered
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                startButton.setBackground(hizmetColor); // Reset background color when not hovered
+            }
+        });
+         */
     }
 
 
