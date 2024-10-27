@@ -76,6 +76,8 @@ public class GamePanel extends JPanel {
     private BufferedImage streetImage;
     private BufferedImage arrowImage;
     private BufferedImage resizedArrowImage;
+    private Color hizmetColor = new Color(155, 193, 51);
+    private Color hoverHizmetColor = new Color(113, 140, 39);
 
     //private ArrayList<BufferedImage> carImages = new ArrayList<>();
     //private Random random = new Random();
@@ -117,7 +119,7 @@ public class GamePanel extends JPanel {
         startButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
         startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
         
-        startButton.setBackground(Color.BLACK);
+        startButton.setBackground(hizmetColor);
         startButton.setForeground(Color.WHITE);
         startButton.setFocusPainted(false); // Removes the focus border
         startButton.setOpaque(true);
@@ -127,12 +129,12 @@ public class GamePanel extends JPanel {
         startButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                startButton.setBackground(Color.GRAY); // Change background color when hovered
+                startButton.setBackground(hoverHizmetColor); // Change background color when hovered
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                startButton.setBackground(Color.BLACK); // Reset background color when not hovered
+                startButton.setBackground(hizmetColor); // Reset background color when not hovered
             }
         });
 
@@ -141,10 +143,10 @@ public class GamePanel extends JPanel {
         add(startButton); // Add start button to the panel
 
         instructionButton = new JButton("Instructions");
-        instructionButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
+        instructionButton.setFont(retroFont.deriveFont(Font.BOLD, 24));
         instructionButton.setBounds(windowWidth / 2 - 125, windowHeight / 2 + 60, 250, 50);
        
-        instructionButton.setBackground(Color.BLACK);
+        instructionButton.setBackground(hizmetColor);
         instructionButton.setFocusPainted(false); // Removes the focus border
         instructionButton.setOpaque(true);
         instructionButton.setBorderPainted(false);
@@ -154,12 +156,12 @@ public class GamePanel extends JPanel {
         instructionButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                instructionButton.setBackground(Color.GRAY); // Change background color when hovered
+                instructionButton.setBackground(hoverHizmetColor); // Change background color when hovered
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                instructionButton.setBackground(Color.BLACK); // Reset background color when not hovered
+                instructionButton.setBackground(hizmetColor); // Reset background color when not hovered
             }
         });
 
@@ -178,12 +180,14 @@ public class GamePanel extends JPanel {
             carImage = ImageIO.read(getClass().getResource("/HizmetTruck.png"));
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println("Hizmet truck image not found.");
         }
 
         try {
             backgroundImage = ImageIO.read(getClass().getResource("/BackgroundImage.png"));
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println("Background image not found.");
         }
 
         try {
@@ -437,23 +441,25 @@ public class GamePanel extends JPanel {
     }
     
     private void drawInstructionScreen(Graphics g) {
-        g.setColor(Color.LIGHT_GRAY);
+        g.setColor(hizmetColor);
         g.fillRect(0, 0, windowWidth, windowHeight);
 
         g.setColor(Color.BLACK);
         g.setFont(retroFont.deriveFont(Font.BOLD, 50));
-        g.drawString("Instructions", windowWidth / 2 - 100, 100);
+        g.drawString("Instructions", windowWidth / 2 - 230, 100);
 
         g.setFont(retroFont.deriveFont(Font.BOLD, 25));
-        g.drawString("Use the arrow keys to move the vehicle.", 100, 200);
-        g.drawString("Avoid obstacles and park in designated spots.", 100, 240);
-        g.drawString("Press UP or DOWN to change lanes.", 100, 280);
-        g.drawString("Press SPACE to pause the game.", 100, 320);
+        g.drawString("Use the arrow keys to move the", 120, 200);
+        g.drawString("vehicle and switch lanes.", 120, 200 + 30);
+        g.drawString("Avoid obstacles and park in", 120, 280);
+        g.drawString("designated spots to make money.", 120, 280 + 30);
+        g.setFont(retroFont.deriveFont(Font.BOLD, 30));
+        g.drawString("GET RICH AND DON'T CRASH!", 120, 380);
     
         if (arrowImage != null) {
             int imageX = (windowWidth - resizedArrowImage.getWidth()) / 2; // Center horizontally
             int imageY = windowHeight / 2 - resizedArrowImage.getHeight() / 2; // Center vertically
-            g.drawImage(resizedArrowImage, imageX + 200, imageY - 100, null);
+            g.drawImage(resizedArrowImage, imageX, imageY - 160, null);
         }
 
         JButton backButton = new JButton("Back to Start");

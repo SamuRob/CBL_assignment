@@ -14,10 +14,11 @@ public class ScorePanel extends JPanel {
     private JLabel highScoreLabel;
     private JLabel levelLabel;
     private Font retroFont;
+    private Color hizmetColor = new Color(155, 193, 51);
 
     public ScorePanel() {
         setLayout(new FlowLayout(FlowLayout.CENTER));  // Align components to the right
-        setBackground(Color.BLACK);
+        setBackground(hizmetColor);
 
         // Load the custom font
         loadCustomFont();
