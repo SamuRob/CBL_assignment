@@ -31,6 +31,14 @@ public class GameFrame extends JFrame {
 
         // Add key listener for vehicle movement
         gamePanel.addKeyListener(new KeyAdapter() {
+            /**
+             * Handles user input for vehicle movement during the game.
+             * If the game has started, this
+             * method checks for UP, DOWN, LEFT, and RIGHT key presses and updates the game state
+             * accordingly. Moving the vehicle is only allowed when the game is running.
+             *
+             * @param e KeyEvent object containing information about the user's input
+             */
             @Override
             public void keyPressed(KeyEvent e) {
                 if (gameStarted) {

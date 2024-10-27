@@ -78,6 +78,16 @@ public class ParkingSpot {
         }
     }
 
+/*************  ✨ Codeium Command ⭐  *************/
+    /**
+     * Removes the parking spot the truck is currently parked in.
+     * This method is called when the player exits a parking spot.
+     * @param truckX the X-coordinate of the truck's top-left corner
+     * @param truckY the Y-coordinate of the truck's top-left corner
+     * @param truckWidth the width of the truck
+     * @param truckHeight the height of the truck
+     */
+/******  daf7e700-a02d-4636-93ff-16382eefe1cc  *******/
     public void removeParkedSpot(int truckX, int truckY, int truckWidth, int truckHeight) {
         for (int i = 0; i < parkingSpots.size(); i++) {
             Rectangle spot = parkingSpots.get(i);
@@ -92,6 +102,15 @@ public class ParkingSpot {
     
 
 
+    /**
+     * Checks if any parking spot is approaching the truck,
+     *  given the truck's X-coordinate and the current scroll speed.
+     * A parking spot is considered approaching if it is within 1.5 seconds
+     *  of travel time ahead of the truck.
+     * @param truckX the X-coordinate of the truck's top-left corner
+     * @param scrollSpeed the current road scroll speed
+     * @return true if a parking spot is approaching, false otherwise
+     */
     public boolean isParkingSpotApproaching(int truckX, int scrollSpeed) {
         // Calculate the distance in pixels the truck will cover in 1.5 seconds
         int distanceIn1_5Seconds = (int) (scrollSpeed * 30 * 1);  // 30 is because the game updates every 30ms
@@ -109,6 +128,18 @@ public class ParkingSpot {
         playerParked = false;  // Reset the parking status
     }
 
+    /**
+     * Checks if the player's truck is fully parked within any of the parking spots.
+     * The method verifies if the entire bounding box of the truck is contained
+     * within a parking spot, considering a reduction factor of 0.8 for both width
+     * and height to allow slight leeway in parking precision.
+     *
+     * @param truckX the X-coordinate of the truck's top-left corner
+     * @param truckY the Y-coordinate of the truck's top-left corner
+     * @param truckWidth the width of the truck
+     * @param truckHeight the height of the truck
+     * @return true if the truck is fully parked inside a parking spot, false otherwise
+     */
     public boolean isPlayerParked(int truckX, int truckY, int truckWidth, int truckHeight) {
         for (Rectangle spot : parkingSpots) {
             // Check if the car's entire bounding box is inside the parking spot

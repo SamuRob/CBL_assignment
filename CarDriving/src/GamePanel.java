@@ -1,11 +1,19 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import javax.imageio.*;
 import java.util.*;
+import javax.imageio.*;
+import javax.swing.*;
 
+
+/**
+ * The GamePanel class is the main game panel
+ * responsible for rendering the game environment,
+ * handling user input, and updating the game state.
+ *
+ * @author Samuel Robinson, Lou Corto Buring
+ */
 public class GamePanel extends JPanel {
     private javax.swing.Timer gameTimer;
     private javax.swing.Timer speedIncreaseTimer; // Timer to increase scroll speed
@@ -16,7 +24,8 @@ public class GamePanel extends JPanel {
 
     private int roadWidth;
     private int roadHeight;
-    private int truckX, truckY;
+    private int truckX; 
+    private int truckY;
     private int currentLane = 1;
     private int maxLane = 5;
     private int scrollSpeed = 5;
@@ -29,8 +38,9 @@ public class GamePanel extends JPanel {
     private boolean isSliding = false;
     private boolean isCountdownRunning = true;
 
-    private boolean GameRunning = false;
-    private int windowHeight, windowWidth;
+    private boolean gameRunning = false;
+    private int windowHeight;
+    private int windowWidth;
     private int countdown = 3;
 
     private boolean isImmune = false; // immunity to vehicle after leaving parking
@@ -53,12 +63,8 @@ public class GamePanel extends JPanel {
     private int roadY;
 
     private boolean gamePaused = false;
-
-    private static final int SHOULDER_WIDTH = 50;
-
     private ParkingSpot parkingSpot;
     private int parkingSpotSpawnCount = 0;
-    private boolean parkSuccess = false;
 
     private static final int START_SCREEN = 0;
     private static final int GAME_SCREEN = 1;
@@ -88,6 +94,10 @@ public class GamePanel extends JPanel {
 
     private JLabel gifLabel;
 
+    /*
+     * Constructor used to configure buttons/load images/font.
+    * @param scorePanel the ScorePanel instance to associate with this GamePanel
+     */
     public GamePanel(ScorePanel scorePanel) {
         this.scorePanel = scorePanel;
 
@@ -156,12 +166,14 @@ public class GamePanel extends JPanel {
         instructionButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                instructionButton.setBackground(hoverHizmetColor); // Change background color when hovered
+                instructionButton.setBackground(hoverHizmetColor);
+                // Change background color when hovered
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                instructionButton.setBackground(hizmetColor); // Reset background color when not hovered
+                instructionButton.setBackground(hizmetColor); 
+
             }
         });
 
@@ -206,7 +218,8 @@ public class GamePanel extends JPanel {
         }
 
         ImageIcon gifIcon = new ImageIcon(getClass().getResource("/monkey.gif"));
-        Image scaledGifImage = gifIcon.getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT); //resize to dimensions
+        Image scaledGifImage = gifIcon.getImage().getScaledInstance(
+            100, 100, Image.SCALE_DEFAULT); //resize to dimensions
         ImageIcon resizedGifIcon = new ImageIcon(scaledGifImage);
         gifLabel = new JLabel(resizedGifIcon);
 
@@ -226,13 +239,14 @@ public class GamePanel extends JPanel {
 
         // Timer for scrolling effect
         gameTimer = new javax.swing.Timer(30, e -> {
-            if (GameRunning) {
+            if (gameRunning) {
                 scrollScreen();
                 repaint();
             }
         });
 
-        obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed, this);
+        obstacles = new Obstacles(roadWidth, roadX, roadY,
+             roadHeight / maxLane, maxLane, scrollSpeed, this);
         parkingSpot = new ParkingSpot(roadWidth, roadX, roadY, roadHeight / maxLane);
 
 
@@ -253,10 +267,17 @@ public class GamePanel extends JPanel {
     }
     
 
+    /**
+     * Resizes a given BufferedImage selected scale factor.
+     * @param originalImage the BufferedImage to be resized
+     * @param scale the scale factor to apply to the image
+     * @return the resized BufferedImage
+     */
     private BufferedImage resizeImage(BufferedImage originalImage, double scale) {
         int newWidth = (int) (originalImage.getWidth() * scale);
         int newHeight = (int) (originalImage.getHeight() * scale);
-        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, originalImage.getType());
+        BufferedImage resizedImage = new BufferedImage(newWidth,
+            newHeight, originalImage.getType());
         
         Graphics2D g2d = resizedImage.createGraphics();
         g2d.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
@@ -266,6 +287,11 @@ public class GamePanel extends JPanel {
     }
     
 
+    /**
+     * Loads our custom font that is stored in project folder
+     * if fail to load - use default font
+     * Prints a success or failure message to the console - debugging.
+     */
     protected void loadCustomFont() {
         try {
             // Load the font file as a resource
@@ -281,6 +307,9 @@ public class GamePanel extends JPanel {
         }
     }
 
+    /**
+     * Shows the instruction screen and removes the Start and Instructions buttons.
+     */
     private void showInstructions() {
         gameState = INSTRUCTION_SCREEN; // Switch to the instruction screen
     
@@ -295,9 +324,16 @@ public class GamePanel extends JPanel {
         repaint(); // Repaint to show the new screen
     }
     
+    /**
+     * Handles the collision event when car hits a banana.
+     * Already sliding, then method exits early to prevent recall
+     * Determines the target lane based on the current lane and initiates sliding
+     * to a neighboring lane. Sets a sliding flag to avoid repeated triggers
+     * and uses a timer to reset the flag after a short delay.
+     */
     public void handleBananaCollision() {
         // Avoid triggering the slide if already sliding
-        if (isSliding){
+        if (isSliding) {
             return;
         } 
     
@@ -305,22 +341,22 @@ public class GamePanel extends JPanel {
     
         int targetLane = currentLane;
     
-        // Determine the new lane based on the current lane
+        //Determine the new lane based on the current lane
         if (currentLane == 2) {
             targetLane = 3;  // If in lane 2, move to lane 3
         } else if (currentLane == 3) {
-            // If in lane 3, randomly pick lane 2 or 4
+            //Fix banana collision
             Random random = new Random();
             targetLane = random.nextBoolean() ? 2 : 4;
         } else if (currentLane == 4) {
             targetLane = 3;  // If in lane 4, move to lane 3
         }
     
-        // Set sliding flag to true to prevent re-triggering the slide
+        //Set sliding flag to true to prevent re-triggering the slide
         isSliding = true;
         moveToLane(targetLane);
     
-        // Reset the sliding flag after a short delay to allow for other collisions
+        //Reset the sliding flag after a short delay to allow for other collisions
         javax.swing.Timer slideResetTimer = new javax.swing.Timer(500, e -> isSliding = false);
         slideResetTimer.setRepeats(false); // Only run the timer once
         slideResetTimer.start();
@@ -328,6 +364,11 @@ public class GamePanel extends JPanel {
     
     
 
+    /**
+     * Draws the dashed lines on the road image by iterating over the y-coordinates of each lane
+     * and drawing a dashed line at each y-coordinate, spaced by a line length of 30 pixels.
+     * The method disposes of the Graphics object after use to clean up resources.
+     */
     private void drawRoadImage() {
         Graphics g = roadImage.getGraphics();
     
@@ -347,10 +388,19 @@ public class GamePanel extends JPanel {
         return maxLane;
     }
 
-    // Start the game after clicking the start button
+    /**
+     * Starts the game by switching to the game screen state, 
+     * setting the game as running, and starting the game timer and
+     * speed increase timer. The countdown is set to 3 and the car is set 
+     * to start in the middle lane (lane 3). The Start and
+     * Instructions buttons are removed, and the 
+     * focus is set to the game panel. A timer is 
+     * used to count down from 3 and
+     * start the game when the countdown reaches 0.
+     */
     public void startGame() {
         gameState = GAME_SCREEN; // Switch to game screen state
-        GameRunning = true; // Set the game as running
+        gameRunning = true; // Set the game as running
         countdown = 3; // Start countdown from 3
         
         isCountdownRunning = true; // countdown true at start of game
@@ -382,12 +432,13 @@ public class GamePanel extends JPanel {
     
                 if (countdown <= 0) {
                     ((javax.swing.Timer) e.getSource()).stop(); // Stop the countdown timer
-                    GameRunning = true; // Set the game as running
+                    gameRunning = true; // Set the game as running
                     gameTimer.start(); // Start the game timer and the scrolling effect
                     requestFocusInWindow(); // Ensure focus is on game panel after game begins
     
                     // Notify the game frame that the game has started
-                    ((GameFrame) SwingUtilities.getWindowAncestor(GamePanel.this)).setGameStarted(true);
+                    ((GameFrame) SwingUtilities.getWindowAncestor(
+                        GamePanel.this)).setGameStarted(true);
                     System.out.println("Game started!");
                 }
             }
@@ -398,6 +449,11 @@ public class GamePanel extends JPanel {
     
     
 
+    /**
+     * This method is called when the panel needs to be redrawn. It handles different
+     * game states and draws the corresponding elements on the screen.
+     * @param g The Graphics object for drawing on the panel
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -408,7 +464,7 @@ public class GamePanel extends JPanel {
                 windowHeight, null); // Draw background to cover the entire window
         }
     
-        for(Tree tree : trees) {
+        for (Tree tree : trees) {
             tree.draw(g);
         }
 
@@ -422,9 +478,7 @@ public class GamePanel extends JPanel {
             obstacles.drawObstacles(g); // Draw obstacles
             drawVehicle(g); // Draw the vehicle (car)
             drawStreet(g);
-           // Rectangle spot = parkingSpot.getNextParkingSpot();
-           // drawAnticipationArrow(g); // Draw anticipation arrow
-    
+
             // Only add the monkey gif when the game is running
             if (!isAncestorOf(gifLabel)) {
                 add(gifLabel);
@@ -486,30 +540,6 @@ public class GamePanel extends JPanel {
                 backButton.setBackground(Color.BLACK); // Reset background color when not hovered
             }
         });
-
-        /*
-         *        startButton = new JButton("Start");
-        startButton.setFont(retroFont.deriveFont(Font.BOLD, 25));
-        startButton.setBounds(windowWidth / 2 - 100, windowHeight / 2, 200, 50);
-        
-        startButton.setBackground(hizmetColor);
-        startButton.setForeground(Color.WHITE);
-        startButton.setFocusPainted(false); // Removes the focus border
-        startButton.setOpaque(true);
-        startButton.setBorderPainted(false);
-
-                startButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                startButton.setBackground(hoverHizmetColor); // Change background color when hovered
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                startButton.setBackground(hizmetColor); // Reset background color when not hovered
-            }
-        });
-         */
     }
 
 
@@ -534,15 +564,6 @@ public class GamePanel extends JPanel {
         g.drawString(countdownText, textX, textY); // Draw the countdown text
     }
 
-    private void drawAnticipationArrow(Graphics g, Rectangle parkingSpot) {
-        g.setColor(Color.RED);
-        int arrowX = parkingSpot.x; // Adjust as needed
-        int arrowY = parkingSpot.y - 30;
-        g.fillPolygon(new int[]{arrowX, arrowX + 20, arrowX},
-                      new int[]{arrowY, arrowY + 10, arrowY + 20}, 3); // Triangle shape for arrow
-    }
-    
-    
     // In your scrollScreen method
     private void scrollScreen() {
         if (gamePaused) {
@@ -556,7 +577,8 @@ public class GamePanel extends JPanel {
         int regionAboveTopLaneMinY = roadY - 220; // 100 pixels above the road
         int regionAboveTopLaneRange = 100; // Vertical range for tree spawn above road
     
-        int regionBelowBottomLaneMinY = roadY + (laneHeight * maxLane)  - 10; // 50 pixels below the road
+        int regionBelowBottomLaneMinY = roadY
+            + (laneHeight * maxLane)  - 10; // 50 pixels below the road
         int regionBelowBottomLaneRange = 100; // Vertical range for tree spawn below road
     
         // Randomly decide if a tree should spawn in the above-top-lane region
@@ -614,11 +636,14 @@ public class GamePanel extends JPanel {
             truckX += 7;
         }
     
-        if (isPlayerInParkingLane(truckY) && 
-            !parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed) && 
+        if (isPlayerInParkingLane(truckY) 
+            && 
+            !parkingSpot.isParkingSpotApproaching(truckX, scrollSpeed) 
+            && 
             !parkingSpot.isPlayerParked(truckX, truckY, carWidth, carHeight)) {
             
-            System.out.println("Player is in a parking lane but not near a parking spot. Moving back to a middle lane.");
+            System.out.println(
+                "Player in parking lane illegally, moving back");
             moveToMiddleLane();
         }
     
@@ -641,7 +666,7 @@ public class GamePanel extends JPanel {
         }
     
         if (obstacles.checkCollision(truckX, truckY, carWidth, carHeight, isImmune)) {
-            GameRunning = false;
+            gameRunning = false;
             gameTimer.stop();
         }
     
@@ -684,11 +709,12 @@ public class GamePanel extends JPanel {
         scorePanel.reset();
     
         // Recreate obstacles and parking spots for a fresh start
-        obstacles = new Obstacles(roadWidth, roadX, roadY, roadHeight / maxLane, maxLane, scrollSpeed, this);
+        obstacles = new Obstacles(roadWidth, roadX, roadY, 
+        roadHeight / maxLane, maxLane, scrollSpeed, this);
     
         // Reset game state to START_SCREEN
         gameState = START_SCREEN;
-        GameRunning = false;
+        gameRunning = false;
     
         // Remove any game-related components (if necessary)
         removeAll(); 
@@ -741,9 +767,7 @@ public class GamePanel extends JPanel {
             if (i == 1 || i == 5) {
                 g.setColor(Color.LIGHT_GRAY);
                 g.fillRect(roadX, laneY, roadWidth, laneHeight); // Fill the lane with light grey
-            }
-            // Middle lanes (2, 3, 4) in dark grey
-            else {
+            } else {
                 g.setColor(Color.DARK_GRAY);
                 g.fillRect(roadX, laneY, roadWidth, laneHeight); // Fill the lane with dark grey
             }
@@ -767,14 +791,21 @@ public class GamePanel extends JPanel {
             int buildingY = roadY - 4 * streetImage.getHeight();
             g.drawImage(streetImage, -streetMoved, buildingY, windowWidth, 200, null);
             if (streetMoved > 0) {
-                g.drawImage(streetImage, windowWidth - streetMoved, buildingY, windowWidth, 200, null);
+                g.drawImage(streetImage, windowWidth - streetMoved,
+                     buildingY, windowWidth, 200, null);
             }
         }
     }
     
     
-    
-    // Add this method to GamePanel
+
+    /**
+     * Handles a collision event by stopping the game timer 
+     * and speed increase timer, and prompting the player
+     * to restart or exit the game. If the player chooses to restart, 
+     * the game is restarted with the restartGame()
+     * method. If the player chooses to exit, the game exits with System.exit(0).
+     */
     public void handleCollision() {
         gameTimer.stop();            // Stop the game timer
         speedIncreaseTimer.stop();    // Stop the speed increase timer
@@ -793,9 +824,16 @@ public class GamePanel extends JPanel {
 
     
     
+    /**
+     * Handles a collision event when the player hits a bomb.
+     * The game is stopped by stopping the game timer and speed increase timer.
+     * The player is then asked if they want to restart the game.
+     * If the player chooses to restart, the game is restarted with the restartGame()
+     * method. If the player chooses to exit, the window closes
+     */
     public void handleBombCollision() {
         System.out.println("Hit a bomb! Game Over.");
-        GameRunning = false;
+        gameRunning = false;
         gameTimer.stop(); // Stop the game timer
         speedIncreaseTimer.stop(); // Stop the speed increase timer
     
@@ -818,6 +856,12 @@ public class GamePanel extends JPanel {
         this.isMovingRight = isMovingRight;
     }
 
+    /**
+     * Moves the vehicle based on the provided keyCode for user input.
+     * Handles both horizontal and vertical movement, with special logic for 
+     * entering and exiting parking spots.
+     * @param keyCode the KeyEvent code representing the user input for vehicle movement
+     */
     public void moveVehicle(int keyCode) {
         if (gameState != GAME_SCREEN) {
             return;
@@ -833,7 +877,8 @@ public class GamePanel extends JPanel {
                 parkingSpot.removeParkedSpot(truckX, truckY, carWidth, carHeight);
     
                 // Increase money by a random amount between 10 and 50 when exiting the parking spot
-                ((GameFrame) SwingUtilities.getWindowAncestor(this)).getScorePanel().addRandomMoney();
+                ((GameFrame) SwingUtilities.getWindowAncestor(this))
+                .getScorePanel().addRandomMoney();
     
                 parkingSpot.resetParkingStatus();  // Reset the parking status
                 gamePaused = false;  // Unpause the game
@@ -855,10 +900,9 @@ public class GamePanel extends JPanel {
                 immunityTimer.setRepeats(false);  // Ensure the timer only runs once
                 immunityTimer.start();
     
-                System.out.println("Player exited parking spot. Parking spot removed. Game resumed.");
-    
-                // Automatically move the car to a random middle lane (2, 3, or 4)
-                final int middleLane = new Random().nextInt(3) + 2;  // Randomly choose lane 2, 3, or 4
+                System.out.println("Player exited parking spot. Parking spot removed");
+                //randomly chose land 2 3 or 4
+                final int middleLane = new Random().nextInt(3) + 2;  
                 moveToLane(middleLane);  // Move the car to a chosen middle lane
             }
         } else {
@@ -881,18 +925,19 @@ public class GamePanel extends JPanel {
     
             moveToLane(targetLane);  // Perform lane movement
     
-            // Right movement: handle RIGHT key with fixed small increment
-           /*  if (keyCode == KeyEvent.VK_RIGHT) {
-                int moveDistance = 20;  // Adjust this value for the step size (small incremental step)
-                truckX = Math.min(roadX + roadWidth - carWidth, truckX + moveDistance);  // Restrict to road boundary
-                repaint();  // Update the screen to reflect the new position
-            }*/
-    
             repaint();  // Update the screen to reflect the movement
         }
     }
     
 
+    /**
+     * Moves the player's car to the specified target lane with a smooth transition.
+     * Calculates the target Y position based on the lane number and initiates a timer
+     * to gradually adjust the car's Y position until it aligns with the target lane.
+     * Once aligned, the timer stops, and the current lane is updated.
+     *
+     * @param targetLane The lane number to move the car to.
+     */
     private void moveToLane(int targetLane) {
         int laneHeight = roadHeight / maxLane;
     
@@ -910,7 +955,7 @@ public class GamePanel extends JPanel {
     
             // Once the truck is aligned with the lane, stop the timer
             if (truckY == targetY) {
-                ((javax.swing.Timer) e.getSource()).stop();  // Stop the timer once the target position is reached
+                ((javax.swing.Timer) e.getSource()).stop();  
                 currentLane = targetLane;  // Update the current lane after reaching target
             }
         });
