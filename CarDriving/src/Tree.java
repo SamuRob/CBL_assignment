@@ -14,7 +14,7 @@ public class Tree {
         
         // Load tree image
         try {
-            treeImage = ImageIO.read(getClass().getResource("/tree.png")); // Ensure tree.png is in resources
+            treeImage = ImageIO.read(getClass().getResource("/tree.png")); 
             width = treeImage.getWidth(null); 
             height = treeImage.getHeight(null);
         } catch (IOException e) {

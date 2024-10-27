@@ -78,16 +78,16 @@ public class ParkingSpot {
         }
     }
 
-/*************  ✨ Codeium Command ⭐  *************/
     /**
-     * Removes the parking spot the truck is currently parked in.
-     * This method is called when the player exits a parking spot.
+     * Removes a parking spot from the list when the truck is fully parked in it.
+     * The method checks if the truck's bounding box is fully contained within
+     * a parking spot's bounding box. If so, it removes that parking spot from
+     * the list of parking spots.
      * @param truckX the X-coordinate of the truck's top-left corner
      * @param truckY the Y-coordinate of the truck's top-left corner
      * @param truckWidth the width of the truck
      * @param truckHeight the height of the truck
      */
-/******  daf7e700-a02d-4636-93ff-16382eefe1cc  *******/
     public void removeParkedSpot(int truckX, int truckY, int truckWidth, int truckHeight) {
         for (int i = 0; i < parkingSpots.size(); i++) {
             Rectangle spot = parkingSpots.get(i);
@@ -164,6 +164,13 @@ public class ParkingSpot {
     }
 
 
+    /**
+     * Checks if any parking spot is approaching the truck, given the truck's X-coordinate.
+     * A parking spot is considered approaching if it is within the distanceBeforeParking
+     * (currently set to 2300 pixels) before it reaches the truck.
+     * @param truckX the X-coordinate of the truck's top-left corner
+     * @return true if a parking spot is approaching, false otherwise
+     */
     public boolean isSpotApproaching(int truckX) {
       for (Rectangle spot : parkingSpots) {
             // Check if the parking spot is within the required distance before it reaches the truck
@@ -182,12 +189,18 @@ public class ParkingSpot {
     }
 
 
-    // Adjust parking spot generation logic
+    /**
+     * Generates a new parking spot in either lane 1 or lane 5.
+     * The parking spot's position is determined randomly and 
+     * aligned with the top of the selected lane. It is then 
+     * added to the list of parking spots and the parking region 
+     * is updated accordingly.
+     */
     public void generateParkingSpot() {
         nextSpotLeft = false;
     
         int laneIndex = random.nextBoolean() ? 0 : 4;  // Only generate in lane 1 or 5
-        int yPos = roadY + (laneIndex * laneHeight);  // Align the top of the parking spot with the lane's top
+        int yPos = roadY + (laneIndex * laneHeight);  
         int xPos = nextSpotLeft ? roadX - spotWidth : roadX + roadWidth;
     
         parkingSpots.add(new Rectangle(xPos, yPos, spotWidth, spotHeight));
@@ -197,7 +210,15 @@ public class ParkingSpot {
     }
     
 
-    // Draw parking lanes and spots
+    /**
+     * Renders the parking spots on the screen using the given Graphics object.
+     * If a parking image is available, it is drawn for each parking spot;
+     * otherwise, green rectangles are used to represent the spots.
+     * Optional visual aids such as anticipation arrows and parking region
+     * outlines can also be drawn.
+     *
+     * @param g the Graphics object used for drawing
+     */
     public void drawParkingSpots(Graphics g) {
         for (Rectangle spot : parkingSpots) {
             if (parkingImage != null) {
@@ -205,10 +226,10 @@ public class ParkingSpot {
             }
             else {
                 g.setColor(Color.GREEN);  // Green for parking spots
-                g.fillRect(spot.x, spot.y, spot.width, spot.height);  // Render parking spots to fit the lane
+                g.fillRect(spot.x, spot.y, spot.width, spot.height); 
+                // Render parking spots to fit the lane
             }
-                //gamePanel.drawAnticipationArrow(g, spot);
-                // Draw the anticipation arrow for each parking spot
+        
         }
 
         // Draw the parking region (optional visual aid)
@@ -217,8 +238,8 @@ public class ParkingSpot {
     }
 
     public boolean isPlayerInParkingLane(int truckY) {
-        // Check if the player's Y position is in lane 1 or lane 5
-    return (truckY == parkingLanesY[0] || truckY == parkingLanesY[3]);  // Lane 1 and 5 are parking lanes
+        return (truckY == parkingLanesY[0] 
+            || truckY == parkingLanesY[3]);  // Lane 1 and 5 are parking lanes
     }
 
 

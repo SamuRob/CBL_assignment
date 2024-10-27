@@ -54,6 +54,14 @@ public class GameFrame extends JFrame {
                 }
             }
 
+            /**
+             * Handles the event when a key is released during the game.
+             * If the game has started, this method updates the game state
+             * by stopping the left or right movement of the vehicle when
+             * the LEFT or RIGHT keys are released, respectively.
+             *
+             * @param e KeyEvent object containing information about the user's input
+             */
             @Override
             public void keyReleased(KeyEvent e) {
                 if (gameStarted) {

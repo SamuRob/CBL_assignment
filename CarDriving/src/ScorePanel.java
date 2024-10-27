@@ -46,7 +46,11 @@ public class ScorePanel extends JPanel {
         setPreferredSize(new Dimension(800, 50));  // Set the preferred size for the panel
     }
 
-    // Load custom font from file or classpath
+    /**
+     * Loads a custom font from the classpath or a file path.
+     * If the font cannot be loaded, it falls back to using the default font.
+     * The custom font is used for displaying the score and high score labels.
+     */
     private void loadCustomFont() {
         try {
             // Attempt to load the font from the classpath
@@ -55,14 +59,15 @@ public class ScorePanel extends JPanel {
                 retroFont = Font.createFont(Font.TRUETYPE_FONT, fontStream).deriveFont(25f);
                 System.out.println("Custom font loaded successfully from resources!");
             } else {
-                // If not found in resources, fallback to loading from a file path (update as needed)
-                retroFont = Font.createFont(Font.TRUETYPE_FONT, new File("src/retro_font.ttf")).deriveFont(25f);
+                retroFont = Font.createFont(Font.TRUETYPE_FONT,
+                     new File("src/retro_font.ttf")).deriveFont(25f);
                 System.out.println("Custom font loaded successfully from file path!");
             }
         } catch (IOException | FontFormatException e) {
             e.printStackTrace();
             System.out.println("Failed to load custom font. Using default font.");
-            retroFont = new Font("SansSerif", Font.BOLD, 25);  // Fallback to default font if loading fails
+            retroFont = new Font("SansSerif", Font.BOLD,
+             25);  // Fallback to default font if loading fails
         }
     }
 
@@ -73,6 +78,11 @@ public class ScorePanel extends JPanel {
         updateLabels();
     }
 
+    /**
+     * Adds a random amount of money to the current score.
+     * The amount added is a random value between 10 and 50.
+     * Updates the score label to reflect the new score.
+     */
     public void addRandomMoney() {
         Random random = new Random();
         int reward = random.nextInt(41) + 10;  // Random value between 10 and 50
