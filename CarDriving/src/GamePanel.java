@@ -31,6 +31,9 @@ public class GamePanel extends JPanel {
     private int scrollSpeed = 5;
     private int level = 1;
 
+    private float fadeOpacity = 1.0f;
+    private boolean isFadingIn = false;
+
     private Font retroFont; // define font
 
     private boolean isMovingRight;
@@ -176,6 +179,8 @@ public class GamePanel extends JPanel {
 
             }
         });
+
+        
 
         instructionButton.addActionListener(e -> showInstructions());
         add(instructionButton);
@@ -403,6 +408,9 @@ public class GamePanel extends JPanel {
         gameRunning = true; // Set the game as running
         countdown = 3; // Start countdown from 3
         
+        fadeOpacity = 1.0f;
+        isFadingIn = false;
+
         isCountdownRunning = true; // countdown true at start of game
 
         gameTimer.start(); // Start the game timer
@@ -423,6 +431,22 @@ public class GamePanel extends JPanel {
     
         repaint(); // Repaint the screen without the Start and Instructions buttons
     
+        //Fade out timer
+        javax.swing.Timer fadeOutTimer = new javax.swing.Timer(100, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fadeOpacity -= 0.05f;
+                if (fadeOpacity <= 0.0f) {
+                    ((javax.swing.Timer) e.getSource()).stop(); // Stop timer when fully transparent
+                    gameRunning = true; // Start the game
+                    fadeOpacity = 0.0f;
+                }
+                repaint(); // Repaint to apply fade effect
+            }
+        });
+        fadeOutTimer.start();
+
+
         // Timer for the countdown
         javax.swing.Timer countdownTimer = new javax.swing.Timer(1000, new ActionListener() {
             @Override
@@ -488,6 +512,14 @@ public class GamePanel extends JPanel {
             if (countdown > 0) {
                 drawCountdown(g); // Draw the countdown
             }
+
+            if (fadeOpacity > 0.0f) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fadeOpacity));
+                g2d.setColor(Color.BLACK);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+
         } else if (gameState == INSTRUCTION_SCREEN) {
             drawInstructionScreen(g); // Draw the instruction screen
             remove(gifLabel);
@@ -555,6 +587,9 @@ public class GamePanel extends JPanel {
     private void drawCountdown(Graphics g) {
         g.setColor(Color.WHITE); // Set the text color
         g.setFont(retroFont.deriveFont(Font.BOLD, 100));
+
+        int textSize = 100 + (3 - countdown) * 10;
+        g.setFont(retroFont.deriveFont(Font.BOLD, textSize));
 
         String countdownText = countdown > 0 ? String.valueOf(countdown) : "GO!"; 
         int textWidth = g.getFontMetrics().stringWidth(countdownText); 
